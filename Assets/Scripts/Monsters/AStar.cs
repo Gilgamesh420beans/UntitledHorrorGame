@@ -32,11 +32,22 @@ public class AStar {
 
 		Node currentNode = null;
 
-		// while (we have not reached our goal (openList.Length != 0))
-		while (openList.Length != 0) {
+        // Timer for the delay
+        float lastUpdateTime = Time.realtimeSinceStartup;
 
-			// C. consider the best node in the open list (the node with the lowest f value) - call it the current node
-		    currentNode = openList.First();
+        // while (we have not reached our goal (openList.Length != 0))
+        while (openList.Length != 0) {
+
+            // Check if 0.1 seconds have passed
+            if (Time.realtimeSinceStartup - lastUpdateTime < 0.001f)
+            {
+                continue;  // Wait until 0.1 seconds have passed
+            }
+            // Update the lastUpdateTime to throttle the pathfinding calculations
+            lastUpdateTime = Time.realtimeSinceStartup;
+
+            // C. consider the best node in the open list (the node with the lowest f value) - call it the current node
+            currentNode = openList.First();
 
             
 			// if the current node is the goal then we're done

@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Creditpage.unity
     guid: b38251f4077eeae41bfc435e88a73c4d
+  - enabled: 1
+    path: Assets/Scenes/TestAI.unity
+    guid: b90b7d50040bd6d48aab17e7536bcc13
   m_configObjects: {}
