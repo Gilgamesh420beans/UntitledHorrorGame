@@ -2,13 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityStandardAssets.Characters.FirstPerson;
 
 public class GameManager : MonoBehaviour
 {
     public GameObject pauseMenuCanvas;  // Reference to the pause menu canvas
     private bool isPaused = false;  // Tracks if the game is paused
-
-    void Update()
+    private MouseController mouseController;
+    void Start()
+    {
+        //mouseController = GetComponent<MouseController>();
+    }
+        void Update()
     {
         // Check if the ESC key is pressed
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -19,20 +24,21 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                PauseGame();
+                PauseGame();                
             }
         }
     }
 
-    // Function to pause the game and show the pause menu
-    //TODO:
-    /*
-        Must contain functionality that pauses the entire scene/game     
-     */
+    
 
     public void PauseGame()
     {
         pauseMenuCanvas.SetActive(true);  // Show the pause menu
+        FirstPersonController fpsController = FindObjectOfType<FirstPersonController>();
+        if (fpsController != null)
+        {
+            fpsController.EnableCameraMovement(false); // Disable camera movement
+        }
         Time.timeScale = 0f;  // Freeze the game
         isPaused = true;  // Mark the game as paused
     }
@@ -45,6 +51,11 @@ public class GameManager : MonoBehaviour
     public void ResumeGame()
     {
         pauseMenuCanvas.SetActive(false);  // Hide the pause menu
+        FirstPersonController fpsController = FindObjectOfType<FirstPersonController>();
+        if (fpsController != null)
+        {
+            fpsController.EnableCameraMovement(true); // Disable camera movement
+        }
         Time.timeScale = 1f;  // Unfreeze the game
         isPaused = false;  // Mark the game as unpaused
     }
