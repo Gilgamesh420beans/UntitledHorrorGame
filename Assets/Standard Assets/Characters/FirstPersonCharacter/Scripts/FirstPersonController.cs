@@ -33,6 +33,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         // I modified this part
         public delegate void FootstepEventHandler(Vector3 position);
         public static event FootstepEventHandler OnFootstep;
+        private bool canMoveCamera = true;
         //
 
 
@@ -89,6 +90,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
 
             m_PreviouslyGrounded = m_CharacterController.isGrounded;
+        }
+
+        public MouseLook GetMouseLook()
+        {
+            return m_MouseLook;
         }
 
 
@@ -249,9 +255,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void RotateView()
         {
-            m_MouseLook.LookRotation (transform, m_Camera.transform);
+            if (canMoveCamera)  // Check if camera movement is allowed
+            {
+                m_MouseLook.LookRotation(transform, m_Camera.transform);
+            }
         }
 
+        public void EnableCameraMovement(bool enable)
+        {
+            canMoveCamera = enable; //input false or true
+        }
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
         {

@@ -68,8 +68,10 @@
     <Compile Include="Assets\Scripts\Monsters\Node.cs" />
     <Compile Include="Assets\Scripts\Monsters\Monster2.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Scripts\MouseController.cs" />
     <Compile Include="Assets\Scripts\Monsters\List.cs" />
     <Compile Include="Assets\Scripts\Monsters\Monster1.cs" />
+    <Compile Include="Assets\Scripts\VolumeController.cs" />
     <Compile Include="Assets\Scripts\Monsters\GridManager.cs" />
   </ItemGroup>
   <ItemGroup>
