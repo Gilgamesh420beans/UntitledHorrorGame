@@ -75,6 +75,7 @@
     <Compile Include="Assets/Scripts/MouseController.cs" />
     <Compile Include="Assets/Scripts/Monsters/List.cs" />
     <Compile Include="Assets/Scripts/Monsters/Monster1.cs" />
+    <Compile Include="Assets/Scripts/LightFlicker.cs" />
     <Compile Include="Assets/Scripts/Flashlight.cs" />
     <Compile Include="Assets/Scripts/VolumeController.cs" />
     <Compile Include="Assets/Scripts/Monsters/GridManager.cs" />
@@ -98,6 +99,7 @@
     <None Include="Assets/TextMesh Pro/Resources/LineBreaking Leading Characters.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMPro_Properties.cginc" />
     <None Include="Assets/TextMesh Pro/Shaders/TMPro_Surface.cginc" />
+    <None Include="Assets/Polyeler/Simple Retro Car/README.txt" />
     <None Include="Assets/TextMesh Pro/Resources/LineBreaking Following Characters.txt" />
     <None Include="Assets/Flooded_Grounds/Resources/WavingGrass.shader" />
     <None Include="Assets/Flooded_Grounds/Resources/TreeCreator/TreeCreatorBarkOptimized.shader" />
