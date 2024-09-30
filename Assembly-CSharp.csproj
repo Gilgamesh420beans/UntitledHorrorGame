@@ -77,6 +77,7 @@
     <Compile Include="Assets/Scripts/Monsters/Monster1.cs" />
     <Compile Include="Assets/Scripts/LightFlicker.cs" />
     <Compile Include="Assets/Scripts/Flashlight.cs" />
+    <Compile Include="Assets/Scripts/LightHouse/LightHouseLightPivot.cs" />
     <Compile Include="Assets/Scripts/VolumeController.cs" />
     <Compile Include="Assets/Scripts/Monsters/GridManager.cs" />
   </ItemGroup>
