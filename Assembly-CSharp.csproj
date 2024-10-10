@@ -60,13 +60,17 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.37f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\GameManager\ManagerGame.cs" />
     <Compile Include="Assets\Scripts\Monsters\AStar.cs" />
+    <Compile Include="Assets\Scripts\Item\ItemGreenKey.cs" />
     <Compile Include="Assets\Scripts\Monsters\Pathfinder.cs" />
     <Compile Include="Assets\Scripts\Monsters\CameraDraw.cs" />
     <Compile Include="Assets\Scripts\Monsters\Monster4.cs" />
     <Compile Include="Assets\Scripts\StartPageManager.cs" />
     <Compile Include="Assets\Scripts\Monsters\Monster3.cs" />
+    <Compile Include="Assets\Scripts\Item\ManagerItem.cs" />
     <Compile Include="Assets\Scripts\CreditpageManager.cs" />
+    <Compile Include="Assets\Scripts\Item\Item.cs" />
     <Compile Include="Assets\Scripts\Monsters\Node.cs" />
     <Compile Include="Assets\Scripts\Monsters\Monster2.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
@@ -78,6 +82,7 @@
     <Compile Include="Assets\Scripts\Flashlight.cs" />
     <Compile Include="Assets\Scripts\LightHouse\LightHouseLightPivot.cs" />
     <Compile Include="Assets\Scripts\Monsters\ForestAreaTrigger.cs" />
+    <Compile Include="Assets\Scripts\Item\ItemKey.cs" />
     <Compile Include="Assets\Scripts\VolumeController.cs" />
     <Compile Include="Assets\Scripts\Monsters\GridManager.cs" />
   </ItemGroup>
