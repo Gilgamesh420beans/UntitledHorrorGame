@@ -41,7 +41,7 @@ public class Pathfinder : MonoBehaviour
     {
         if (pathfindingState == PathfindingState.Paused)
         {
-            Debug.Log("Pathfinding is paused. No calculations being performed.");
+            //Debug.Log("Pathfinding is paused. No calculations being performed.");
             return;  // Skip pathfinding when paused
         }
 
@@ -61,7 +61,7 @@ public class Pathfinder : MonoBehaviour
     {
         if (pathfindingState == PathfindingState.Paused)
         {
-            Debug.Log("Resuming pathfinding.");
+            //Debug.Log("Resuming pathfinding.");
             pathfindingState = PathfindingState.Active;  // Set pathfinding state to active
         }
     }
@@ -70,7 +70,7 @@ public class Pathfinder : MonoBehaviour
     {
         if (pathfindingState == PathfindingState.Paused)
         {
-            Debug.LogWarning("Pathfinding is paused. Cannot calculate path.");
+            //Debug.LogWarning("Pathfinding is paused. Cannot calculate path.");
             return;
         }
 
@@ -85,7 +85,7 @@ public class Pathfinder : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Target is null! Cannot calculate path.");
+            //Debug.LogError("Target is null! Cannot calculate path.");
             return;
         }
 
@@ -95,7 +95,7 @@ public class Pathfinder : MonoBehaviour
 
         if (startGridIndex == -1 || goalGridIndex == -1)
         {
-            Debug.LogError("Either the start or goal position is out of bounds.");
+            //Debug.LogError("Either the start or goal position is out of bounds.");
             pathfindingState = PathfindingState.Paused;  // Pause pathfinding if the start or goal is out of bounds
             return;
         }
@@ -106,7 +106,7 @@ public class Pathfinder : MonoBehaviour
         // Check if the goal node is valid (i.e., not blocked or out of bounds)
         if (goalNode == null || goalNode.bObstacle)
         {
-            Debug.LogError("Goal node is invalid or blocked. Pathfinding paused.");
+            //Debug.LogError("Goal node is invalid or blocked. Pathfinding paused.");
             pathfindingState = PathfindingState.Paused;  // Pause pathfinding if the goal is blocked
             return;
         }
@@ -115,7 +115,7 @@ public class Pathfinder : MonoBehaviour
         switch (algorithmType.ToLower())
         {
             case "astar":
-                Debug.Log("Using A* algorithm");
+                //Debug.Log("Using A* algorithm");
                 pathArray = AStar.FindPath(startNode, goalNode);
                 break;
 
@@ -137,7 +137,7 @@ public class Pathfinder : MonoBehaviour
         // Check if a valid path was found
         if (pathArray == null || pathArray.Count == 0)
         {
-            Debug.LogError("No valid path found. Pathfinding paused.");
+            //Debug.LogError("No valid path found. Pathfinding paused.");
             pathfindingState = PathfindingState.Paused;  // Pause pathfinding if no valid path found
         }
         else

@@ -98,7 +98,7 @@ public class Monster1 : MonoBehaviour
     // Patrol State: Move between patrol points
     void Patrol()
     {
-        Debug.Log("Patrolling...");
+        //Debug.Log("Patrolling...");
 
         // Resume pathfinding after losing the player
         pathfinder.ResumePathfinding();
@@ -108,7 +108,7 @@ public class Monster1 : MonoBehaviour
         {
             // If the goal (patrol point) is reached, switch to the next patrol point
             currentPatrolPoint = (currentPatrolPoint + 1) % patrolPoints.Length;
-            Debug.Log("Switching to the next patrol point: " + patrolPoints[currentPatrolPoint].name);
+            //Debug.Log("Switching to the next patrol point: " + patrolPoints[currentPatrolPoint].name);
 
             // Calculate path to the next patrol point
             pathfinder.FindPath("astar", patrolPoints[currentPatrolPoint].gameObject);
@@ -131,7 +131,7 @@ public class Monster1 : MonoBehaviour
     // Check if the player is within detection range to start chasing
     void CheckForPlayer()
     {
-        Debug.Log("Checking for player...");
+        //Debug.Log("Checking for player...");
 
         // Check if the player is within the maze and reachable
         if (PlayerInMaze() && IsPlayerReachable())
@@ -162,7 +162,7 @@ public class Monster1 : MonoBehaviour
         // Ensure the player is within bounds and the grid is not an obstacle
         if (playerGridIndex == -1)
         {
-            Debug.LogError("Player is out of bounds.");
+            //Debug.LogError("Player is out of bounds.");
             return false;
         }
 
@@ -184,13 +184,13 @@ public class Monster1 : MonoBehaviour
         // Check if pathfinding is paused and skip following the path if it is
         if (pathfinder.pathfindingState == Pathfinder.PathfindingState.Paused)
         {
-            Debug.Log("Pathfinding is paused, skipping movement.");
+            //Debug.Log("Pathfinding is paused, skipping movement.");
             return;  // Skip movement while pathfinding is paused
         }
 
         if (pathfinder.pathArray == null || pathfinder.pathArray.Count == 0)
         {
-            Debug.LogError("No path found for patrolling!");
+            //Debug.LogError("No path found for patrolling!");
             return;
         }
 
@@ -208,7 +208,7 @@ public class Monster1 : MonoBehaviour
             // goal reached)
             if (currentPathIndex >= pathfinder.pathArray.Count)
             {
-                Debug.Log("Reached goal.");
+                //Debug.Log("Reached goal.");
             }
         }
     }
@@ -231,7 +231,7 @@ public class Monster1 : MonoBehaviour
     // Check if the player has moved out of the maze or the monster's detection range
     void CheckLostPlayer()
     {
-        Debug.Log("Checking if player is lost...");
+        //Debug.Log("Checking if player is lost...");
         if (!PlayerInMaze() || !IsPlayerReachable())
         {
             Debug.Log("Lost the player. Returning to patrol...");
@@ -245,7 +245,7 @@ public class Monster1 : MonoBehaviour
 
     void AttackPlayer()
     {
-        Debug.Log("Attacking Player");
+        //Debug.Log("Attacking Player");
     }
 
 

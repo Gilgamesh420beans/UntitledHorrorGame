@@ -7,6 +7,7 @@ TagManager:
   - Monster1
   - Obstacle
   - Monster2
+  - ForestArea
   layers:
   - Default
   - TransparentFX

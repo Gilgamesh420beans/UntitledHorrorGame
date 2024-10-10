@@ -9,7 +9,10 @@ public class Monster2 : MonoBehaviour
     {
         Patrolling,
         Chasing,
-        Freezing
+        Freezing,
+        Teleporting, //makes a noise
+
+
     }
 
     public MonsterState curState = MonsterState.Patrolling;
@@ -23,7 +26,7 @@ public class Monster2 : MonoBehaviour
     public float hearingRange = 40f;   // Range within which the monster can hear footsteps
     public float fieldOfViewAngle = 30f;  // Angle for the monster to detect the player looking at it
 
-    private bool isPlayerLooking = false;
+    
     private Transform playerTransform;
 
     // Variables for wall-following behavior
@@ -51,7 +54,7 @@ public class Monster2 : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Player not found in the scene!");
+            //Debug.LogError("Player not found in the scene!");
         }
 
         // Subscribe to the player's footstep event
@@ -60,7 +63,7 @@ public class Monster2 : MonoBehaviour
         // Check if patrol points are assigned
         if (patrolPoints.Length == 0)
         {
-            Debug.LogError("No patrol points assigned!");
+            //Debug.LogError("No patrol points assigned!");
         }
 
         // Initialize positionAtLastCheck
@@ -78,9 +81,6 @@ public class Monster2 : MonoBehaviour
         if (playerTransform == null)
             return;
 
-        // Check if player is looking at the monster
-        CheckIfPlayerIsLooking();
-
         // Update the trap timer
         trapTimer += Time.deltaTime;
 
@@ -90,7 +90,7 @@ public class Monster2 : MonoBehaviour
             // Check if the monster is trapped
             if (IsMonsterTrapped())
             {
-                Debug.Log("Monster is trapped. Teleporting to a random waypoint.");
+                //Debug.Log("Monster is trapped. Teleporting to a random waypoint.");
                 TeleportToRandomWaypoint();
                 // Reset the timer and position
                 trapTimer = 0.0f;
@@ -106,7 +106,7 @@ public class Monster2 : MonoBehaviour
         }
 
         // Debugging: Log current state
-        Debug.Log($"Monster State: {curState}, IsWallFollowing: {isWallFollowing}");
+        //Debug.Log($"Monster State: {curState}, IsWallFollowing: {isWallFollowing}");
 
         switch (curState)
         {
@@ -130,12 +130,12 @@ public class Monster2 : MonoBehaviour
         // If the monster hasn't moved outside the trap radius, it's considered trapped
         if (distanceMoved < trapRadius)
         {
-            Debug.Log($"Monster has moved {distanceMoved} units in {trapCheckInterval} seconds, which is less than the trap radius of {trapRadius} units.");
+            //Debug.Log($"Monster has moved {distanceMoved} units in {trapCheckInterval} seconds, which is less than the trap radius of {trapRadius} units.");
             return true;
         }
         else
         {
-            Debug.Log($"Monster has moved {distanceMoved} units in {trapCheckInterval} seconds, which is sufficient.");
+            //Debug.Log($"Monster has moved {distanceMoved} units in {trapCheckInterval} seconds, which is sufficient.");
             return false;
         }
     }
@@ -160,9 +160,9 @@ public class Monster2 : MonoBehaviour
         Transform targetPoint = patrolPoints[currentPatrolIndex];
 
         // Debugging: Log patrol information
-        Debug.Log($"Patrolling to point {currentPatrolIndex}: {targetPoint.position}");
-        Debug.Log($"Monster Position: {transform.position}");
-        Debug.Log($"Distance to Patrol Point: {Vector3.Distance(transform.position, targetPoint.position)}");
+        //Debug.Log($"Patrolling to point {currentPatrolIndex}: {targetPoint.position}");
+        //Debug.Log($"Monster Position: {transform.position}");
+        //Debug.Log($"Distance to Patrol Point: {Vector3.Distance(transform.position, targetPoint.position)}");
 
         MoveTowardsTarget(targetPoint.position, patrolSpeed);
 
@@ -170,7 +170,7 @@ public class Monster2 : MonoBehaviour
         if (Vector3.Distance(transform.position, targetPoint.position) < 5.0f)
         {
             currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
-            Debug.Log($"Reached patrol point. Moving to next patrol point: {currentPatrolIndex}");
+            //Debug.Log($"Reached patrol point. Moving to next patrol point: {currentPatrolIndex}");
         }
     }
 
@@ -179,7 +179,7 @@ public class Monster2 : MonoBehaviour
         if (lastHeardPosition != Vector3.zero)
         {
             // Debugging: Log chasing information
-            Debug.Log($"Chasing towards last heard position: {lastHeardPosition}");
+            //Debug.Log($"Chasing towards last heard position: {lastHeardPosition}");
 
             MoveTowardsTarget(lastHeardPosition, chaseSpeed);
 
@@ -188,14 +188,14 @@ public class Monster2 : MonoBehaviour
             {
                 lastHeardPosition = Vector3.zero;
                 curState = MonsterState.Patrolling;
-                Debug.Log("Reached last heard position. Switching to Patrolling state.");
+                //Debug.Log("Reached last heard position. Switching to Patrolling state.");
             }
         }
         else
         {
             // No last heard position, switch to patrolling
             curState = MonsterState.Patrolling;
-            Debug.Log("No last heard position. Switching to Patrolling state.");
+            //Debug.Log("No last heard position. Switching to Patrolling state.");
         }
     }
 
@@ -209,7 +209,7 @@ public class Monster2 : MonoBehaviour
         directionToTarget.y = 0; // Keep movement in the horizontal plane
 
         // Debugging: Log movement direction
-        Debug.Log($"Moving towards target. Direction: {directionToTarget}, IsWallFollowing: {isWallFollowing}");
+        //Debug.Log($"Moving towards target. Direction: {directionToTarget}, IsWallFollowing: {isWallFollowing}");
 
         float obstacleDetectionDistance = Mathf.Max(1.0f, speed * Time.deltaTime + 0.5f);
 
@@ -224,7 +224,7 @@ public class Monster2 : MonoBehaviour
                 // Path is clear, stop wall-following
                 isWallFollowing = false;
                 stuckCounter = 0;
-                Debug.Log("Path towards target is clear for required distance. Stopping wall-following.");
+                //Debug.Log("Path towards target is clear for required distance. Stopping wall-following.");
             }
             return;
         }
@@ -235,7 +235,7 @@ public class Monster2 : MonoBehaviour
             // Obstacle detected, start wall-following
             isWallFollowing = true;
             stuckCounter = 0;
-            Debug.Log("Obstacle detected ahead. Starting wall-following.");
+            //Debug.Log("Obstacle detected ahead. Starting wall-following.");
 
             // Get the normal of the wall to determine the wall-following direction
             lastWallNormal = hitInfo.normal;
@@ -277,18 +277,18 @@ public class Monster2 : MonoBehaviour
                 wallFollowDirection = normalizedDir;
                 MoveInDirection(wallFollowDirection, speed);
                 stuckCounter = 0; // Reset counter
-                Debug.Log($"Wall-following: Moving in direction {wallFollowDirection}");
+                //Debug.Log($"Wall-following: Moving in direction {wallFollowDirection}");
                 return;
             }
             else
             {
-                Debug.Log($"Direction {normalizedDir} is blocked.");
+                //Debug.Log($"Direction {normalizedDir} is blocked.");
             }
         }
 
         // All directions blocked, increment stuckCounter
         stuckCounter++;
-        Debug.Log($"All directions blocked. StuckCounter: {stuckCounter}");
+        //Debug.Log($"All directions blocked. StuckCounter: {stuckCounter}");
 
         if (stuckCounter >= 4)
         {
@@ -296,7 +296,7 @@ public class Monster2 : MonoBehaviour
             Vector3 randomDirection = new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)).normalized;
             wallFollowDirection = randomDirection;
             stuckCounter = 0;
-            Debug.Log("StuckCounter reached limit. Choosing random direction.");
+            //Debug.Log("StuckCounter reached limit. Choosing random direction.");
         }
     }
 
@@ -323,12 +323,12 @@ public class Monster2 : MonoBehaviour
             }
 
             // Debugging: Log movement
-            Debug.Log($"Moving in direction: {direction}");
+            //Debug.Log($"Moving in direction: {direction}");
         }
         else
         {
             // Obstacle detected during movement, adjust wall-following
-            Debug.Log($"Obstacle detected during movement in direction {direction}. Adjusting wall-following.");
+            //Debug.Log($"Obstacle detected during movement in direction {direction}. Adjusting wall-following.");
             isWallFollowing = true;
             stuckCounter++;
             lastWallNormal = hitInfo.normal;
@@ -355,13 +355,13 @@ public class Monster2 : MonoBehaviour
 
         if (hit && hitInfo.collider != null && hitInfo.collider.CompareTag("Obstacle") && hitInfo.collider.gameObject != gameObject)
         {
-            Debug.Log($"Obstacle detected in direction {direction}");
+            //Debug.Log($"Obstacle detected in direction {direction}");
             Debug.DrawRay(castOrigin, direction * distance, Color.red);
             return true;
         }
         else
         {
-            Debug.Log($"No obstacle detected in direction {direction}");
+            //Debug.Log($"No obstacle detected in direction {direction}");
         }
 
         return false;
@@ -375,53 +375,11 @@ public class Monster2 : MonoBehaviour
         {
             lastHeardPosition = playerPosition;
             curState = MonsterState.Chasing;
-            Debug.Log("Heard player footstep. Switching to Chasing state.");
+            //Debug.Log("Heard player footstep. Switching to Chasing state.");
         }
     }
 
-    void CheckIfPlayerIsLooking()
-    {
-        if (playerTransform == null)
-            return;
-
-        Vector3 directionToMonster = transform.position - playerTransform.position;
-        float angle = Vector3.Angle(playerTransform.forward, directionToMonster);
-
-        if (angle < fieldOfViewAngle)
-        {
-            RaycastHit hit;
-            Vector3 rayOrigin = playerTransform.position + Vector3.up * 1.5f; // Adjust for player's eye height
-            if (Physics.Raycast(rayOrigin, directionToMonster.normalized, out hit))
-            {
-                if (hit.transform == this.transform)
-                {
-                    if (!isPlayerLooking)
-                    {
-                        isPlayerLooking = true;
-                        curState = MonsterState.Freezing;
-                        Debug.Log("Player is looking at the monster. Switching to Freezing state.");
-                    }
-                    return;
-                }
-            }
-        }
-
-        if (isPlayerLooking)
-        {
-            isPlayerLooking = false;
-            // Return to previous state
-            if (lastHeardPosition != Vector3.zero)
-            {
-                curState = MonsterState.Chasing;
-                Debug.Log("Player stopped looking. Returning to Chasing state.");
-            }
-            else
-            {
-                curState = MonsterState.Patrolling;
-                Debug.Log("Player stopped looking. Returning to Patrolling state.");
-            }
-        }
-    }
+    
 
     void DrawArrow(Vector3 position, Vector3 direction)
     {
