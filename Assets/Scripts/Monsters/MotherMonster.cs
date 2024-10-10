@@ -14,7 +14,7 @@ public class MotherMonster : MonoBehaviour
         Unlimited,
         Attacking
     }
-
+    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
     public MotherMonsterState currentState = MotherMonsterState.Idle;
 
     public GameObject monster3Prefab; // The prefab for Monster3
@@ -46,6 +46,20 @@ public class MotherMonster : MonoBehaviour
     {
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         agent = GetComponent<NavMeshAgent>();
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+            playerMovement = playerObj.GetComponent<PlayerMovement>();  // Assign PlayerMovement component
+            if (playerMovement == null)
+            {
+                Debug.LogError("PlayerMovement component not found on the player object.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Player object not found in the scene!");
+        }
 
         originalSize = transform.localScale;
         originalSpeed = baseChaseSpeed;
@@ -96,7 +110,7 @@ public class MotherMonster : MonoBehaviour
 
     void IdleState()
     {
-        Debug.Log($"MotherMonster is idle. Time to next spawn: {timeToNextSpawn:F2} seconds");
+        //Debug.Log($"MotherMonster is idle. Time to next spawn: {timeToNextSpawn:F2} seconds");
 
         if (timeToNextSpawn <= 0)
         {
@@ -130,6 +144,7 @@ public class MotherMonster : MonoBehaviour
             // Use currentAttackRange to trigger an attack
             if (Vector3.Distance(transform.position, playerTransform.position) <= currentAttackRange)
             {
+                
                 currentState = MotherMonsterState.Attacking;
             }
         }
@@ -166,6 +181,8 @@ public class MotherMonster : MonoBehaviour
     void AttackState()
     {
         Debug.Log("MotherMonster is attacking the player!");
+        // DO AN ATTACK ANIMATION
+        playerMovement.Die();
         // Add attack logic here, such as reducing player health or triggering game over.
     }
 

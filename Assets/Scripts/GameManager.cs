@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityStandardAssets.Characters.FirstPerson;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,11 +12,25 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     public GameObject pauseMenuCanvas;  // Reference to the pause menu canvas
-    private bool isPaused = false;  // Tracks if the game is paused
+    public bool isPaused = false;  // Tracks if the game is paused
     private MouseController mouseController;
     public GameObject helpContentCanvas;  // Reference to the help content canvas
     private bool isHelpActive = false; // Tracks if help content is active
 
+    // Variables to track key collection status
+    public bool redKeyCollected = false;
+    public bool yellowKeyCollected = false;
+    public bool blueKeyCollected = false;
+    public bool UFOKeyCollected = false;
+
+
+    // References to the UI Text elements for objectives
+    public TextMeshProUGUI redKeyText;
+    public TextMeshProUGUI yellowKeyText;
+    public TextMeshProUGUI blueKeyText;
+    public TextMeshProUGUI UFOKeyText;
+
+    private bool gameEnded = false;
     private void Awake()
     {
         // Singleton pattern implementation
@@ -29,6 +45,17 @@ public class GameManager : MonoBehaviour
         //mouseController = GetComponent<MouseController>();
         pauseMenuCanvas.SetActive(false);  // Ensure the pause menu starts inactive
         helpContentCanvas.SetActive(false);  // Ensure the help content is inactive
+        UpdateObjectiveTexts();
+        // Subscribe to the OnItemCollected event if ManagerItem instance exists
+        if (ManagerItem.Instance != null)
+        {
+            ManagerItem.Instance.OnItemCollected += HandleItemCollected;
+            Debug.Log("Successfully subscribed to OnItemCollected event.");
+        }
+        else
+        {
+            Debug.LogError("ManagerItem instance is null. Cannot subscribe to OnItemCollected.");
+        }
     }
 
     void Update()
@@ -47,29 +74,82 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
+    void UpdateObjectiveTexts()
+    {
+        redKeyText.text = "Red Key: " + (redKeyCollected ? "Collected" : "Ongoing");
+        yellowKeyText.text = "Yellow Key: " + (yellowKeyCollected ? "Collected" : "Ongoing");
+        blueKeyText.text = "Blue Key: " + (blueKeyCollected ? "Collected" : "Ongoing");
+        UFOKeyText.text = "UFO Key: " + (UFOKeyCollected ? "Collected" : "Ongoing");
+    }
+
+    public void CollectRedKey()
+    {
+        redKeyCollected = true;
+        UpdateObjectiveTexts();
+    }
+
+    public void CollectYellowKey()
+    {
+        yellowKeyCollected = true;
+        UpdateObjectiveTexts();
+    }
+
+    public void CollectBlueKey()
+    {
+        blueKeyCollected = true;
+        UpdateObjectiveTexts();
+    }
+
+    public void CollectUFOKey()
+    {
+        UFOKeyCollected = true;
+        UpdateObjectiveTexts();
+    }
     public void PauseGame()
     {
-        pauseMenuCanvas.SetActive(true);  // Show the pause menu
-        FirstPersonController fpsController = FindObjectOfType<FirstPersonController>();
-        if (fpsController != null)
+        // If the help content is active, disable it first
+        if (isHelpActive)
         {
-            fpsController.EnableCameraMovement(false); // Disable camera movement
+            CloseHelp();
         }
+
+        pauseMenuCanvas.SetActive(true);  // Show the pause menu
         Time.timeScale = 0f;  // Freeze the game
         isPaused = true;  // Mark the game as paused
+
+        // Unlock and show the cursor
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
+
+
 
     public void ResumeGame()
     {
-        pauseMenuCanvas.SetActive(false);  // Hide the pause menu
-        FirstPersonController fpsController = FindObjectOfType<FirstPersonController>();
-        if (fpsController != null)
+        Debug.Log("PauseGame triggered, checking for active AudioSources.");
+        AudioSource[] audioSources = FindObjectsOfType<AudioSource>();
+        foreach (AudioSource source in audioSources)
         {
-            fpsController.EnableCameraMovement(true); // Enable camera movement
+            if (source.isPlaying)
+            {
+                Debug.Log("Playing audio: " + source);
+            }
         }
+
+        if (isHelpActive)
+        {
+            CloseHelp();
+        }
+        pauseMenuCanvas.SetActive(false);  // Hide the pause menu
         Time.timeScale = 1f;  // Unfreeze the game
         isPaused = false;  // Mark the game as unpaused
+
+        // Lock and hide the cursor
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
+
 
     // Function to return to the StartPage
     public void ReturnToMenu()
@@ -87,10 +167,45 @@ public class GameManager : MonoBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
-
-
-
     }
+
+
+    public void PlayerDied()
+    {
+        if (!gameEnded)
+        {
+            gameEnded = true;
+            Debug.Log("Player has died. Returning to the main menu.");
+
+            StartCoroutine(ReturnToMainMenu());
+            ResetLevel();
+        }
+    }
+
+    public void FinaliseGame()
+    {
+        StartCoroutine(ReturnToMainMenu());
+        ResetLevel();
+    }
+    public void ResetLevel()
+    {
+        StartCoroutine(ResetLevelWithDelay(2f)); // Call the coroutine with a 1-second delay
+    }
+    private IEnumerator ResetLevelWithDelay(float delay)
+    {
+        // Wait for the specified delay (1 second in this case)
+        yield return new WaitForSeconds(delay);
+
+        // Reload the current scene
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    private IEnumerator ReturnToMainMenu()
+    {
+        yield return new WaitForSeconds(1f);  // Optional delay before returning to main menu
+        SceneManager.LoadScene("StartPage");  // Load the main menu scene
+    }
+
     public void ShowHelp()
     {
         // Disable pause menu content and show the help content
@@ -127,6 +242,8 @@ public class GameManager : MonoBehaviour
     private void HandleItemCollected(string itemName, int count)
     {
         // Debug purposes
+        Debug.Log($"Item collected: {itemName}, Count: {count}");
+
         if (itemName != null)
         {
             Debug.Log($"Item Name: {itemName}, Count: {count}");
@@ -137,8 +254,32 @@ public class GameManager : MonoBehaviour
             // Trigger the event, e.g., unlock a door
             UnlockSecretDoor();
         }
-    }
 
+        if (itemName == "UFOKey")
+        {
+            // Trigger the event to make MotherMonster and Monster3 clones angry
+            Debug.Log("UFOKey collected! Triggering angry state for MotherMonster and Monster3 clones.");
+            TriggerMonstersToBecomeAngry();
+        }
+    }
+    private void TriggerMonstersToBecomeAngry()
+    {
+        // Find and trigger MotherMonster
+        MotherMonster motherMonster = FindObjectOfType<MotherMonster>();
+        if (motherMonster != null)
+        {
+            motherMonster.TriggerAngryMode();
+            Debug.Log("MotherMonster has been triggered to become angry.");
+        }
+
+        // Find all Monster3 instances and trigger their angry state
+        Monster3[] allMonster3s = FindObjectsOfType<Monster3>();
+        foreach (Monster3 monster in allMonster3s)
+        {
+            monster.TriggerAngryMode();
+            Debug.Log("Monster3 clone has been triggered to become angry.");
+        }
+    }
     private void UnlockSecretDoor()
     {
         // Test implementation of unlocking a door

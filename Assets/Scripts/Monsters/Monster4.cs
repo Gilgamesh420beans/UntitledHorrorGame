@@ -13,7 +13,7 @@ public class Monster4 : MonoBehaviour
         Idle,
         Jumping
     }
-
+    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
     public MonsterState currentState = MonsterState.Idle;
 
     private NavMeshAgent agent;
@@ -50,7 +50,22 @@ public class Monster4 : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         rb = GetComponent<Rigidbody>(); // Assign Rigidbody component
-        playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+
+        // Find the player object and its PlayerMovement script
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+            playerMovement = playerObj.GetComponent<PlayerMovement>();  // Assign PlayerMovement component
+            if (playerMovement == null)
+            {
+                Debug.LogError("PlayerMovement component not found on the player object.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Player object not found in the scene!");
+        }
 
         // Lock rotation on x and z axes to keep the monster upright
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
@@ -60,6 +75,7 @@ public class Monster4 : MonoBehaviour
 
         currentState = MonsterState.Following; // Initial state
     }
+
 
     void Update()
     {
@@ -155,12 +171,14 @@ public class Monster4 : MonoBehaviour
     void AttackState()
     {
         Debug.Log("Monster4 is attacking the player!");
-
+        // DO AN ATTACK ANIMATION
+        playerMovement.Die();
+        return;
         // Add attack logic here (e.g., reduce player health or trigger game over)
-        if (Vector3.Distance(transform.position, playerTransform.position) > attackRange)
+        /*if (Vector3.Distance(transform.position, playerTransform.position) > attackRange)
         {
             currentState = MonsterState.Following;
-        }
+        }*/
     }
 
     // Freezing state where the monster is frozen when light shines on it
