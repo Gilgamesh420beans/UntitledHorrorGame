@@ -2,14 +2,26 @@ using UnityEngine;
 
 public class ItemKey : Item
 {
+    public AudioClip pickupClip;
 
-    public override void OnPickUp()
+    protected override void Awake() {
+        if (audioSource != null && pickupClip != null){
+            audioSource.PlayOneShot(pickupClip);
+        }
+    }
+
+     public override void OnPickUp()
     {
-        // If we have deault mehtod, base allows use to reuse rather than rewrite
-        // base.OnPickUp();
-        // Call ManagerItem instance & add key
-        ManagerItem.Instance.AddItem("Key");
+        // Play the pickup sound
+        if (audioSource != null && pickupClip != null)
+        {
+            audioSource.PlayOneShot(pickupClip);
+        }
 
+        // Add the key to the manager
+        ManagerItem.Instance.AddItem("Key");
+        
+        Destroy(gameObject);
     }
 
 }

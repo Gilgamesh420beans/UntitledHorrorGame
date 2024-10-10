@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Item : MonoBehaviour
@@ -5,6 +6,27 @@ public class Item : MonoBehaviour
 
     private Vector3 rotation;
     private Vector3 startPosition; // To store the initial position for bobbing
+    public AudioSource audioSource;
+
+    protected virtual void Awake() {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null){
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+    }
+
+    // protected virtual void Awake() {
+    //     audioSource = GetComponent<AudioSource>();
+    //     if (audioSource == null){
+    //         audioSource = gameObject.AddComponent<AudioSource>();
+    //     }
+    // }
+
+    // public virtual void PickUpSound(){
+    //     if (audioSource != null && audioSource.clip != null){
+    //         audioSource.Play();
+    //     }
+    // }
     
 
     void Start()
@@ -41,7 +63,7 @@ public class Item : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             OnPickUp();
-            Destroy(gameObject); // Remove the item from the scene
+            // Destroy handled in subclasses
         }
     }
 }
