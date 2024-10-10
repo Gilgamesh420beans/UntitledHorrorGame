@@ -362,6 +362,7 @@
 "Assets/Scripts/Flashlight.cs"
 "Assets/Scripts/GameManager.cs"
 "Assets/Scripts/GameManager/ManagerGame.cs"
+"Assets/Scripts/HUD/Compass.cs"
 "Assets/Scripts/Item/Item.cs"
 "Assets/Scripts/Item/ItemGreenKey.cs"
 "Assets/Scripts/Item/ItemKey.cs"
