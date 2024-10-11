@@ -382,6 +382,7 @@
 "Assets/Scripts/Monsters/Node.cs"
 "Assets/Scripts/Monsters/Pathfinder.cs"
 "Assets/Scripts/MouseController.cs"
+"Assets/Scripts/Notes/NoteRead.cs"
 "Assets/Scripts/StartPageManager.cs"
 "Assets/Scripts/VolumeController.cs"
 -langversion:9.0

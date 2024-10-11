@@ -86,6 +86,7 @@
     <Compile Include="Assets/Scripts/HUD/Compass.cs" />
     <Compile Include="Assets/Scripts/Flashlight.cs" />
     <Compile Include="Assets/Scripts/LightHouse/LightHouseLightPivot.cs" />
+    <Compile Include="Assets/Scripts/Notes/NoteRead.cs" />
     <Compile Include="Assets/Scripts/Monsters/ForestAreaTrigger.cs" />
     <Compile Include="Assets/Scripts/Item/ItemKey.cs" />
     <Compile Include="Assets/Scripts/VolumeController.cs" />
