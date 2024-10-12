@@ -117,7 +117,7 @@ public class MotherMonster : MonoBehaviour
     void IdleState()
     {
         //Debug.Log($"MotherMonster is idle. Time to next spawn: {timeToNextSpawn:F2} seconds");
-
+        AnimateIdle();
         if (timeToNextSpawn <= 0)
         {
             Debug.Log("MotherMonster is spawning Monster3.");
@@ -165,7 +165,7 @@ public class MotherMonster : MonoBehaviour
     void WatchingState()
     {
         GrowOverTime();
-        AnimatePatrol();
+        AnimateIdle();
 
         if (playerInForestArea)
         {
@@ -175,6 +175,7 @@ public class MotherMonster : MonoBehaviour
 
     void UnlimitedState()
     {
+        AnimateChasePlayer();
         agent.isStopped = false;
         agent.speed = currentChaseSpeed;
         agent.destination = playerTransform.position;
@@ -318,7 +319,8 @@ public class MotherMonster : MonoBehaviour
     SetCrawlerAnimation("isIdle", true);    // Ensure idle is true
     }
 
-    void AnimatePatrol(){
+    // Slow Crawl
+    void AnimateSlowCrawl(){
     // Set walking to true when patrolling, disable other animations
     SetCrawlerAnimation("isCrawling", true);  // Set walking to true
     SetCrawlerAnimation("isFastCrawling", false); // Ensure running is false

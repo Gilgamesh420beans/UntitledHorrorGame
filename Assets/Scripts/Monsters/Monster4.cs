@@ -46,8 +46,13 @@ public class Monster4 : MonoBehaviour
     // Store original position for out-of-bounds check
     private Vector3 originalPosition;
 
+    private Animator dummyAnimator;
+
+
     void Start()
     {
+        dummyAnimator = transform.Find("dummy").GetComponent<Animator>();
+
         agent = GetComponent<NavMeshAgent>();
         rb = GetComponent<Rigidbody>(); // Assign Rigidbody component
 
@@ -144,6 +149,7 @@ public class Monster4 : MonoBehaviour
     // Following state where the monster follows the player
     void FollowState()
     {
+        AnimateChasePlayer();
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
         if (distanceToPlayer <= followDistance)
@@ -170,15 +176,16 @@ public class Monster4 : MonoBehaviour
     // Attacking state where the monster will try to attack the player
     void AttackState()
     {
-        Debug.Log("Monster4 is attacking the player!");
+        // Debug.Log("Monster4 is attacking the player!");
         // DO AN ATTACK ANIMATION
+        AnimateAttack();
         playerMovement.Die();
         return;
         // Add attack logic here (e.g., reduce player health or trigger game over)
-        /*if (Vector3.Distance(transform.position, playerTransform.position) > attackRange)
+        if (Vector3.Distance(transform.position, playerTransform.position) > attackRange)
         {
             currentState = MonsterState.Following;
-        }*/
+        }
     }
 
     // Freezing state where the monster is frozen when light shines on it
@@ -191,6 +198,9 @@ public class Monster4 : MonoBehaviour
             agent.ResetPath(); // Clear the agent's path to fully stop movement
             rb.velocity = Vector3.zero; // Stop any movement caused by the Rigidbody
             rb.angularVelocity = Vector3.zero; // Stop any unwanted rotations
+            
+            //Idle animation method call
+            AnimateIdle();
 
             // Key collection
             if (!keyCollected && Vector3.Distance(transform.position, playerTransform.position) < attackRange)
@@ -210,21 +220,24 @@ public class Monster4 : MonoBehaviour
     // Jumping state: Monster jumps in a random direction when the player leaves range
     void JumpState()
     {
+        
         if (!isJumping)
         {
             agent.isStopped = true; // Stop the agent
             agent.enabled = false;  // Disable NavMeshAgent so it doesn't interfere with physics
+           
+            // Animation mehtod call for jump, move if wrong spot
+            // AnimateJump();
 
             // Calculate random direction between -45 and 45 degrees relative to the player
             float randomAngle = Random.Range(-45f, 45f);
             Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
             Vector3 randomDirection = Quaternion.Euler(0, randomAngle, 0) * directionToPlayer;
-
+            
             // Apply a horizontal jump (in a random direction) and a vertical jump (upward)
             rb.AddForce(randomDirection * jumpDistance + Vector3.up * jumpHeight, ForceMode.VelocityChange);
             isJumping = true;
             jumpInitiated = true;
-
             Debug.Log($"Monster4 jumps in a random direction (angle: {randomAngle}) and upward.");
 
             // Reset the jump cooldown timer after jumping
@@ -235,6 +248,7 @@ public class Monster4 : MonoBehaviour
     // Function to freeze the monster
     public void Freeze()
     {
+        AnimateIdle();
         if (!isFrozen)
         {
             Debug.Log("Monster4 is frozen by the light!");
@@ -270,6 +284,59 @@ public class Monster4 : MonoBehaviour
         agent.enabled = true; // Re-enable the NavMeshAgent
         currentState = MonsterState.Following; // Return to following state
     }
+
+    //////Animation//////
+
+     // Function to trigger animations based on boolean parameters
+    void SetDummyAnimation(string parameter, bool state)
+    {
+        if (dummyAnimator != null)
+        {
+            dummyAnimator.SetBool(parameter, state);
+        }
+    }
+
+    ////// TODO: iMPLEMENT //////
+
+    // void FacePlayer()
+    // {
+    // // Calculate the direction to the player
+    // Vector3 directionToPlayer = player.position - transform.position;
+    // // directionToPlayer.y = 0; // Ignore vertical rotation (optional, depending on your game)
+
+    // if (directionToPlayer.magnitude > 0.1f) // Check if the player is far enough to face them
+    // {
+    //     // Calculate the rotation needed to face the player
+    //     Quaternion targetRotation = Quaternion.LookRotation(directionToPlayer);
+
+    //     // Smoothly rotate the monster towards the player
+    //     transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f); // Adjust the rotation speed with Time.deltaTime * speed factor
+    //     }
+    // }
+
+    void AnimateIdle(){
+    SetDummyAnimation("isWalking", false); // Ensure walking is true        
+    SetDummyAnimation("isIdle", true);    // Ensure idle is false
+    }
+
+    void AnimateChasePlayer(){
+    SetDummyAnimation("isWalking", true); // Ensure walking is true
+    SetDummyAnimation("isIdle", false);    // Ensure idle is false
+    }
+
+    void AnimateAttack(){
+        dummyAnimator.SetTrigger("Attack");
+        // return;
+    }
+
+      void AnimateJump(){
+        dummyAnimator.SetTrigger("Jump");
+        // return;
+    }
+    
+
+    ////END ANIMATION METHODS////
+
 
     private void OnDrawGizmos()
     {
