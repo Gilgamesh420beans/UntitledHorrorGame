@@ -40,6 +40,13 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
     }
 
+    // Objective List
+
+    public 
+
+
+
+
     void Start()
     {
         //mouseController = GetComponent<MouseController>();
