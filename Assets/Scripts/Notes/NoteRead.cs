@@ -22,7 +22,7 @@ public class NoteRead : MonoBehaviour
     public Camera playerCamera;  // Reference to player's camera for raycasting
     private bool hasPlayedAudio = false;   // To track whether the audio has been played
 
-    private FirstPersonController fpsController;  // Reference to FirstPersonController script
+    public MonoBehaviour fpsController;  // Reference to FirstPersonController script
     private Vector2 originalTextPosition;  // Store the original position of the interact text
 
     public Vector2 noteOpenTextPosition = new Vector2(0, 100);  // Position to move interactText when note is open
@@ -40,7 +40,7 @@ public class NoteRead : MonoBehaviour
         isInteractionActive = false;
 
         // Get the FirstPersonController component from the player object
-        fpsController = player.GetComponent<FirstPersonController>();
+        fpsController = player.GetComponent<MonoBehaviour>();
 
         // Store the original position of the interactText
         originalTextPosition = interactText.rectTransform.anchoredPosition;
