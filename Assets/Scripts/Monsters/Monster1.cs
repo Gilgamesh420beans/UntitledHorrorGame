@@ -36,8 +36,17 @@ public class Monster1 : MonoBehaviour
     public Vector3 mazeMaxBounds;  // Set in the inspector to the top-right corner of the maze
 
     private Transform playerTransform;
+
+    private Animator clownAnimator;
+
+    
     void Start()
     {
+
+        //Clown
+        // Reference the Animator component on the true_clown
+        clownAnimator = transform.Find("true_clown").GetComponent<Animator>();
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -109,10 +118,15 @@ public class Monster1 : MonoBehaviour
         }
     }
 
+   
+
 
     // Patrol State: Move between patrol points
     void Patrol()
     {
+
+        AnimatePatrol();
+        FollowPath(patrolSpeed);
         //Debug.Log("Patrolling...");
 
         // Resume pathfinding after losing the player
@@ -140,8 +154,6 @@ public class Monster1 : MonoBehaviour
         // Follow the path to the current patrol point
         FollowPath(patrolSpeed);
     }
-
-
 
     // Check if the player is within detection range to start chasing
     void CheckForPlayer()
@@ -231,6 +243,10 @@ public class Monster1 : MonoBehaviour
     // Chase State: Move towards the player using pathfinding
     void ChasePlayer()
     {
+        // Ensure the monster faces the player
+        FacePlayer();
+        AnimateChasePlayer();
+
         timeSinceLastPathUpdate += Time.deltaTime;
 
         if (timeSinceLastPathUpdate >= pathRecalculationInterval)
@@ -241,7 +257,19 @@ public class Monster1 : MonoBehaviour
         }
 
         FollowPath(moveSpeed);
+
+        ///////////////////////////////    
+        // ADRIAN LOOK HERE!!!!!!
+        // Attack player if in range
+        if (Vector3.Distance(transform.position, player.position) < attackRadius)
+        {
+            AttackPlayer();
+        }
+        ///////////////////////////////
+
     }
+
+   
 
     // Check if the player has moved out of the maze or the monster's detection range
     void CheckLostPlayer()
@@ -261,6 +289,7 @@ public class Monster1 : MonoBehaviour
     void AttackPlayer()
     {
         // DO AN ATTACK ANIMATION
+        AnimateAttack();
         playerMovement.Die();
         //Debug.Log("Attacking Player");
     }
@@ -295,6 +324,57 @@ public class Monster1 : MonoBehaviour
             curState = MonsterState.Dead;
         }
     }
+
+    //////Animation//////
+
+     // Function to trigger animations based on boolean parameters
+    void SetClownAnimation(string parameter, bool state)
+    {
+        if (clownAnimator != null)
+        {
+            clownAnimator.SetBool(parameter, state);
+        }
+    }
+
+
+    void FacePlayer()
+    {
+    // Calculate the direction to the player
+    Vector3 directionToPlayer = player.position - transform.position;
+    // directionToPlayer.y = 0; // Ignore vertical rotation (optional, depending on your game)
+
+    if (directionToPlayer.magnitude > 0.1f) // Check if the player is far enough to face them
+    {
+        // Calculate the rotation needed to face the player
+        Quaternion targetRotation = Quaternion.LookRotation(directionToPlayer);
+
+        // Smoothly rotate the monster towards the player
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f); // Adjust the rotation speed with Time.deltaTime * speed factor
+        }
+    }
+
+    void AnimatePatrol(){
+    // Set walking to true when patrolling, disable other animations
+    SetClownAnimation("isWalking", true);  // Set walking to true
+    SetClownAnimation("isRunning", false); // Ensure running is false
+    SetClownAnimation("isIdle", false);    // Ensure idle is false
+    }
+
+    void AnimateChasePlayer(){
+    // Set walking or running based on the player's distance, speed, or whatever logic you want
+    SetClownAnimation("isRunning", true);  // Set running to true when chasing
+    SetClownAnimation("isWalking", false); // Ensure walking is false
+    SetClownAnimation("isIdle", false);    // Ensure idle is false
+    }
+
+    void AnimateAttack(){
+        clownAnimator.SetTrigger("Attack");
+    }
+
+    
+
+    ////END ANIMATION METHODS////
+
 
     // Optional Gizmo for debugging
     private void OnDrawGizmos()

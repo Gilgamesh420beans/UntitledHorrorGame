@@ -11,6 +11,8 @@ TagManager:
   - UFOKey
   - ExitZone
   - CameraTarget
+  - Fire
+  - YellowKey
   layers:
   - Default
   - TransparentFX
