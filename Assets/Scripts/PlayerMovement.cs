@@ -309,12 +309,24 @@ public class PlayerMovement : MonoBehaviour
         healthbar.rectTransform.sizeDelta = new Vector2(newWidth, healthbar.rectTransform.rect.height);
     }
 
+
+    public GameObject deadCanvas;  // Reference to the Dead canvas
+
     public void Die()
     {
         if (isDead) return;
 
         isDead = true;
-        GameManager.Instance.PlayerDied();
+
+        Cursor.lockState = CursorLockMode.None;
+        // Freeze the game world
+        Time.timeScale = 0f;
+
+        // Display the dead canvas
+        if (deadCanvas != null)
+        {
+            deadCanvas.SetActive(true);
+        }
     }
 
     private void OnTriggerEnter(Collider other)

@@ -22,8 +22,8 @@ public class Monster4 : MonoBehaviour
     public float followDistance = 50f;
     public float attackRange = 3f;
     public float freezeDuration = 5f;
-    private float jumpDistance = 25f;   // Horizontal jump distance
-    private float jumpHeight = 20f;      // How high the monster jumps
+    private float jumpDistance = 20f;   // Horizontal jump distance
+    private float jumpHeight = 15f;      // How high the monster jumps
 
     private bool isFrozen = false;
     private float freezeTimer = 0f;
@@ -101,6 +101,7 @@ public class Monster4 : MonoBehaviour
             jumpCooldownTimer -= Time.deltaTime;
         }
 
+        // Handle freezing logic
         if (isFrozen)
         {
             // Only decrease freeze timer if flashlight is not shining
@@ -122,15 +123,20 @@ public class Monster4 : MonoBehaviour
         // Reset flashlight shining flag each frame
         isFlashlightShining = false;
 
-        // Reset jumping if the monster has landed
-        if (isJumping && rb.velocity.y == 0 && jumpInitiated)
+        // Check if monster has landed after jumping
+        if (isJumping && rb.velocity.y <= 0 && jumpInitiated && IsGrounded())
         {
-            // Re-enable NavMeshAgent after jump
+            Debug.Log("Monster has landed after jumping.");
+
             isJumping = false;
+            jumpInitiated = false;
+
+            // Re-enable NavMeshAgent after landing
             agent.enabled = true;
             agent.isStopped = false;
+            Debug.Log("NavMeshAgent re-enabled after jump.");
+
             currentState = MonsterState.Following; // Go back to following after jump
-            jumpInitiated = false;
         }
 
         // Check if out of bounds (y < -10), if so, reset position
@@ -139,6 +145,7 @@ public class Monster4 : MonoBehaviour
             ResetToOriginalPosition();
         }
     }
+
 
     // Main state update logic
     void UpdateState()
@@ -251,6 +258,14 @@ public class Monster4 : MonoBehaviour
         agent.isStopped = true;
     }
 
+
+    bool IsGrounded()
+    {
+        // Check if the monster is grounded using a raycast
+        float distanceToGround = 0.1f; // Adjust as needed
+        return Physics.Raycast(transform.position, Vector3.down, distanceToGround);
+    }
+
     // Jumping state: Monster jumps in a random direction when the player leaves range
     void JumpState()
     {
@@ -262,34 +277,36 @@ public class Monster4 : MonoBehaviour
 
         if (!isJumping)
         {
-            Debug.Log("Entering JumpState");
+            Debug.Log("Entering JumpState.");
 
             agent.isStopped = true;
             agent.enabled = false;
+            Debug.Log("NavMeshAgent disabled.");
 
-            // Ensure Rigidbody is not kinematic during jump
+            // Ensure Rigidbody is not kinematic
             rb.isKinematic = false;
-            Debug.Log("rb.isKinematic before jump: " + rb.isKinematic);
 
-            // Animation method call for jump
+            // Play jump animation
             AnimateJump();
 
-            // Calculate random direction
+            // Calculate random jump direction
             float randomAngle = Random.Range(-45f, 45f);
             Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
             Vector3 randomDirection = Quaternion.Euler(0, randomAngle, 0) * directionToPlayer;
 
             // Apply jump force
-            rb.AddForce(randomDirection * jumpDistance + Vector3.up * jumpHeight, ForceMode.VelocityChange);
+            Vector3 jumpForce = randomDirection * jumpDistance + Vector3.up * jumpHeight;
+            rb.AddForce(jumpForce, ForceMode.VelocityChange);
+            Debug.Log("Jump force applied: " + jumpForce);
+
             isJumping = true;
             jumpInitiated = true;
-
-            Debug.Log($"Monster4 jumps in a random direction (angle: {randomAngle}) and upward.");
 
             // Reset jump cooldown
             jumpCooldownTimer = jumpCooldown;
         }
     }
+
 
 
 

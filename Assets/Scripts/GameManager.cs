@@ -29,6 +29,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI yellowKeyText;
     public TextMeshProUGUI blueKeyText;
     public TextMeshProUGUI UFOKeyText;
+    public GameObject deathCanvas; // Reference to the death canvas
 
     private bool gameEnded = false;
     private void Awake()
@@ -42,12 +43,7 @@ public class GameManager : MonoBehaviour
 
     // Objective List
 
-    public 
-
-
-
-
-    void Start()
+    public void Start()
     {
         //mouseController = GetComponent<MouseController>();
         pauseMenuCanvas.SetActive(false);  // Ensure the pause menu starts inactive
@@ -68,8 +64,14 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         // Check if the ESC key is pressed
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (deathCanvas != null && deathCanvas.activeSelf)
         {
+            // If the death canvas is active, do nothing on pressing Escape
+            return;
+        } else if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            // Check if the ESC key is pressed
+
             if (isPaused)
             {
                 ResumeGame();
