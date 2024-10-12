@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;  // Include the NavMesh namespace
 using UnityStandardAssets.Characters.FirstPerson;
 
 public class Monster2 : MonoBehaviour
@@ -10,7 +11,7 @@ public class Monster2 : MonoBehaviour
         Patrolling,
         Chasing,
         Freezing,
-        Teleporting, //makes a noise
+        Teleporting, // Makes a noise
         Attacking
     }
 
@@ -21,12 +22,11 @@ public class Monster2 : MonoBehaviour
     private int currentPatrolIndex = 0;
 
     private Vector3 lastHeardPosition = Vector3.zero;  // The position where the monster last heard the player
-    public float chaseSpeed = 15f;
-    public float patrolSpeed = 10f;
-    public float hearingRange = 40f;   // Range within which the monster can hear footsteps
-    public float fieldOfViewAngle = 30f;  // Angle for the monster to detect the player looking at it
+    public float chaseSpeed = 7f;
+    public float patrolSpeed = 6f;
+    public float hearingRange = 60f;   // Range within which the monster can hear footsteps
 
-    public float attackRange = 2f;
+    public float attackRange = 3f;
     private Transform playerTransform;
 
     // Variables for wall-following behavior
@@ -36,17 +36,21 @@ public class Monster2 : MonoBehaviour
     private int stuckCounter = 0; // Counter to keep track of attempts
 
     private Vector3 currentMovementDirection = Vector3.zero;
-    private float requiredClearDistance = 10.0f; // Distance the path must be clear to exit wall-following
+    private float requiredClearDistance = 15.0f; // Distance the path must be clear to exit wall-following
 
     // Variables for detecting if the monster is trapped
-    private float trapCheckInterval = 5.0f; // Interval in seconds to check if the monster is trapped
+    private float trapCheckInterval = 8.0f; // Interval in seconds to check if the monster is trapped
     private float trapTimer = 0.0f; // Timer to keep track of the interval
     private Vector3 positionAtLastCheck; // Position of the monster at the last check
     private float trapRadius = 10.0f; // Radius within which the monster is considered trapped
 
+    private float postTeleportTimer = 0f; // Timer to stop movement after teleport
+    private float postTeleportDuration = 2f; // Duration to stop movement after teleport
+
+    private NavMeshAgent agent;  // Reference to the NavMeshAgent component
+
     void Start()
     {
-
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -63,22 +67,37 @@ public class Monster2 : MonoBehaviour
         }
 
         // Subscribe to the player's footstep event
-        FirstPersonController.OnFootstep += OnPlayerFootstep;
+        PlayerMovement.OnFootstep += OnPlayerFootstep;
 
         // Check if patrol points are assigned
         if (patrolPoints.Length == 0)
         {
-            //Debug.LogError("No patrol points assigned!");
+            // Debug.LogError("No patrol points assigned!");
         }
 
         // Initialize positionAtLastCheck
         positionAtLastCheck = transform.position;
+
+        // Get the NavMeshAgent component
+        agent = GetComponent<NavMeshAgent>();
+        if (agent == null)
+        {
+            Debug.LogError("NavMeshAgent component not found on the monster.");
+        }
+        else
+        {
+            agent.speed = patrolSpeed;
+            agent.isStopped = false;
+            agent.updateRotation = true;
+            agent.updatePosition = true;
+            agent.enabled = true;
+        }
     }
 
     void OnDestroy()
     {
         // Unsubscribe from the player's footstep event
-        FirstPersonController.OnFootstep -= OnPlayerFootstep;
+        PlayerMovement.OnFootstep -= OnPlayerFootstep;
     }
 
     void Update()
@@ -86,6 +105,11 @@ public class Monster2 : MonoBehaviour
         if (playerTransform == null)
             return;
 
+        if (postTeleportTimer > 0)
+        {
+            postTeleportTimer -= Time.deltaTime;
+            return; // Skip further updates until the post-teleport timer runs out
+        }
         // Update the trap timer
         trapTimer += Time.deltaTime;
 
@@ -95,11 +119,14 @@ public class Monster2 : MonoBehaviour
             // Check if the monster is trapped
             if (IsMonsterTrapped())
             {
-                //Debug.Log("Monster is trapped. Teleporting to a random waypoint.");
+                // Debug.Log("Monster is trapped. Teleporting to a random waypoint.");
                 TeleportToRandomWaypoint();
                 // Reset the timer and position
                 trapTimer = 0.0f;
                 positionAtLastCheck = transform.position;
+
+                // Start post-teleport idle period
+                postTeleportTimer = postTeleportDuration;
                 return; // Skip other updates this frame
             }
             else
@@ -110,15 +137,23 @@ public class Monster2 : MonoBehaviour
             }
         }
 
-        // Debugging: Log current state
-        //Debug.Log($"Monster State: {curState}, IsWallFollowing: {isWallFollowing}");
-
+        // Switch between states
         switch (curState)
         {
             case MonsterState.Patrolling:
+                if (agent != null && !agent.enabled)
+                {
+                    agent.enabled = true;
+                    agent.isStopped = false;
+                }
                 Patrol();
                 break;
             case MonsterState.Chasing:
+                if (agent != null && agent.enabled)
+                {
+                    agent.isStopped = true;
+                    agent.enabled = false;
+                }
                 Chase();
                 break;
             case MonsterState.Freezing:
@@ -133,8 +168,12 @@ public class Monster2 : MonoBehaviour
     void Attack()
     {
         // DO AN ATTACK ANIMATION
-        playerMovement.Die();
+        if (playerMovement != null)
+        {
+            playerMovement.Die();
+        }
     }
+
     bool IsMonsterTrapped()
     {
         // Calculate the distance moved in the last interval
@@ -143,12 +182,12 @@ public class Monster2 : MonoBehaviour
         // If the monster hasn't moved outside the trap radius, it's considered trapped
         if (distanceMoved < trapRadius)
         {
-            //Debug.Log($"Monster has moved {distanceMoved} units in {trapCheckInterval} seconds, which is less than the trap radius of {trapRadius} units.");
+            // Debug.Log($"Monster has moved {distanceMoved} units in {trapCheckInterval} seconds, which is less than the trap radius of {trapRadius} units.");
             return true;
         }
         else
         {
-            //Debug.Log($"Monster has moved {distanceMoved} units in {trapCheckInterval} seconds, which is sufficient.");
+            // Debug.Log($"Monster has moved {distanceMoved} units in {trapCheckInterval} seconds, which is sufficient.");
             return false;
         }
     }
@@ -164,31 +203,38 @@ public class Monster2 : MonoBehaviour
         // Teleport the monster to the selected waypoint
         transform.position = randomWaypoint.position;
         Debug.Log($"Teleported to waypoint {randomIndex}: {randomWaypoint.position}");
+
+        // Reset the NavMeshAgent
+        if (agent != null)
+        {
+            agent.enabled = true;
+            agent.isStopped = false;
+            agent.ResetPath();
+        }
     }
 
     void Patrol()
     {
-        if (patrolPoints.Length == 0) return;
+        if (patrolPoints.Length == 0 || agent == null || !agent.enabled) return;
 
-        Transform targetPoint = patrolPoints[currentPatrolIndex];
+        agent.speed = patrolSpeed;
 
-        // Debugging: Log patrol information
-        //Debug.Log($"Patrolling to point {currentPatrolIndex}: {targetPoint.position}");
-        //Debug.Log($"Monster Position: {transform.position}");
-        //Debug.Log($"Distance to Patrol Point: {Vector3.Distance(transform.position, targetPoint.position)}");
-
-        MoveTowardsTarget(targetPoint.position, patrolSpeed);
-
-        // If reached the patrol point, move to next
-        if (Vector3.Distance(transform.position, targetPoint.position) < 5.0f)
+        // If the agent has no path or has reached the current patrol point, set the next patrol point
+        if (!agent.hasPath || agent.remainingDistance < 1f)
         {
+            agent.destination = patrolPoints[currentPatrolIndex].position;
             currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
-            //Debug.Log($"Reached patrol point. Moving to next patrol point: {currentPatrolIndex}");
         }
     }
 
     void Chase()
     {
+        if (agent != null && agent.enabled)
+        {
+            agent.isStopped = true;
+            agent.enabled = false;
+        }
+
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
         if (distanceToPlayer <= attackRange)
         {
@@ -200,9 +246,6 @@ public class Monster2 : MonoBehaviour
 
         if (lastHeardPosition != Vector3.zero)
         {
-            // Debugging: Log chasing information
-            //Debug.Log($"Chasing towards last heard position: {lastHeardPosition}");
-
             MoveTowardsTarget(lastHeardPosition, chaseSpeed);
 
             // If reached the last heard position, go back to patrolling
@@ -210,14 +253,26 @@ public class Monster2 : MonoBehaviour
             {
                 lastHeardPosition = Vector3.zero;
                 curState = MonsterState.Patrolling;
-                //Debug.Log("Reached last heard position. Switching to Patrolling state.");
+
+                // Re-enable the NavMeshAgent and resume patrolling
+                if (agent != null)
+                {
+                    agent.enabled = true;
+                    agent.isStopped = false;
+                }
             }
         }
         else
         {
             // No last heard position, switch to patrolling
             curState = MonsterState.Patrolling;
-            //Debug.Log("No last heard position. Switching to Patrolling state.");
+
+            // Re-enable the NavMeshAgent and resume patrolling
+            if (agent != null)
+            {
+                agent.enabled = true;
+                agent.isStopped = false;
+            }
         }
     }
 
@@ -229,9 +284,6 @@ public class Monster2 : MonoBehaviour
         // Calculate the direction towards the target
         Vector3 directionToTarget = (targetPosition - transform.position).normalized;
         directionToTarget.y = 0; // Keep movement in the horizontal plane
-
-        // Debugging: Log movement direction
-        //Debug.Log($"Moving towards target. Direction: {directionToTarget}, IsWallFollowing: {isWallFollowing}");
 
         float obstacleDetectionDistance = Mathf.Max(1.0f, speed * Time.deltaTime + 0.5f);
 
@@ -246,7 +298,6 @@ public class Monster2 : MonoBehaviour
                 // Path is clear, stop wall-following
                 isWallFollowing = false;
                 stuckCounter = 0;
-                //Debug.Log("Path towards target is clear for required distance. Stopping wall-following.");
             }
             return;
         }
@@ -257,7 +308,6 @@ public class Monster2 : MonoBehaviour
             // Obstacle detected, start wall-following
             isWallFollowing = true;
             stuckCounter = 0;
-            //Debug.Log("Obstacle detected ahead. Starting wall-following.");
 
             // Get the normal of the wall to determine the wall-following direction
             lastWallNormal = hitInfo.normal;
@@ -299,18 +349,12 @@ public class Monster2 : MonoBehaviour
                 wallFollowDirection = normalizedDir;
                 MoveInDirection(wallFollowDirection, speed);
                 stuckCounter = 0; // Reset counter
-                //Debug.Log($"Wall-following: Moving in direction {wallFollowDirection}");
                 return;
-            }
-            else
-            {
-                //Debug.Log($"Direction {normalizedDir} is blocked.");
             }
         }
 
         // All directions blocked, increment stuckCounter
         stuckCounter++;
-        //Debug.Log($"All directions blocked. StuckCounter: {stuckCounter}");
 
         if (stuckCounter >= 4)
         {
@@ -318,7 +362,6 @@ public class Monster2 : MonoBehaviour
             Vector3 randomDirection = new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)).normalized;
             wallFollowDirection = randomDirection;
             stuckCounter = 0;
-            //Debug.Log("StuckCounter reached limit. Choosing random direction.");
         }
     }
 
@@ -343,14 +386,10 @@ public class Monster2 : MonoBehaviour
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
             }
-
-            // Debugging: Log movement
-            //Debug.Log($"Moving in direction: {direction}");
         }
         else
         {
             // Obstacle detected during movement, adjust wall-following
-            //Debug.Log($"Obstacle detected during movement in direction {direction}. Adjusting wall-following.");
             isWallFollowing = true;
             stuckCounter++;
             lastWallNormal = hitInfo.normal;
@@ -377,13 +416,8 @@ public class Monster2 : MonoBehaviour
 
         if (hit && hitInfo.collider != null && hitInfo.collider.CompareTag("Obstacle") && hitInfo.collider.gameObject != gameObject)
         {
-            //Debug.Log($"Obstacle detected in direction {direction}");
             Debug.DrawRay(castOrigin, direction * distance, Color.red);
             return true;
-        }
-        else
-        {
-            //Debug.Log($"No obstacle detected in direction {direction}");
         }
 
         return false;
@@ -397,11 +431,15 @@ public class Monster2 : MonoBehaviour
         {
             lastHeardPosition = playerPosition;
             curState = MonsterState.Chasing;
-            //Debug.Log("Heard player footstep. Switching to Chasing state.");
+
+            // Disable the NavMeshAgent when starting to chase
+            if (agent != null && agent.enabled)
+            {
+                agent.isStopped = true;
+                agent.enabled = false;
+            }
         }
     }
-
-    
 
     void DrawArrow(Vector3 position, Vector3 direction)
     {

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;  // Include the NavMesh namespace
 
 public class Monster1 : MonoBehaviour
 {
@@ -9,35 +10,47 @@ public class Monster1 : MonoBehaviour
         Patrolling,
         Chasing,
         Attacking,
+        Climbing,
         Dead,
         None
     }
-    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
+
     // Monster Properties
     public MonsterState curState = MonsterState.None;  // Default state
-    public Transform player;
-    public Transform[] patrolPoints;  // Waypoints for patrolling
+
+    private NavMeshAgent agent;           // Reference to the NavMeshAgent component
+    private Transform playerTransform;    // Reference to the player's transform
+    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
+    private Rigidbody rb;                   // Reference to Rigidbody for manual control of gravity
+
+    public Transform[] patrolPoints;      // Waypoints for patrolling
     public GameObject explosionPrefab;
-    public float moveSpeed = 2f;            // Speed while chasing
-    public float patrolSpeed = 1f;          // Speed while patrolling
-    public float health = 100f;             // Health of the monster
-    public float attackRadius = 2f;         // attack radius 
-    public float chaseDistance = 45.0f;     // Distance to start chasing the player
+    public float moveSpeed = 5f;          // Speed while chasing
+    public float patrolSpeed = 8f;        // Speed while patrolling
+    public float health = 100f;           // Health of the monster
+    public float attackRadius = 3f;       // Attack radius
+    public float chaseDistance = 60.0f;   // Distance to start chasing the player
 
     private int currentPatrolPoint = 0;
-    private bool hasDied = false;      // Prevents multiple executions of death actions
-    private Pathfinder pathfinder;     // Reference to the Pathfinder script
-    private int currentPathIndex = 0;  // Index for path nodes in pathfinding
+    private bool hasDied = false;         // Prevents multiple executions of death actions
 
-    public float pathRecalculationInterval = 1.0f; // Time between path recalculations
-    private float timeSinceLastPathUpdate = 0.0f; // Track time since last path update
+    public Vector3 mazeMinBounds;         // Set in the inspector to the bottom-left corner of the maze
+    public Vector3 mazeMaxBounds;         // Set in the inspector to the top-right corner of the maze
 
-    public Vector3 mazeMinBounds;  // Set in the inspector to the bottom-left corner of the maze
-    public Vector3 mazeMaxBounds;  // Set in the inspector to the top-right corner of the maze
-
-    private Transform playerTransform;
     void Start()
     {
+        // Get the NavMeshAgent component
+        agent = GetComponent<NavMeshAgent>();
+        rb = GetComponent<Rigidbody>(); // Get Rigidbody component
+        if (agent == null)
+        {
+            Debug.LogError("NavMeshAgent component not found on the monster.");
+        }
+
+        // Set initial speeds
+        agent.speed = patrolSpeed;
+
+        // Find the player object and get references
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -52,38 +65,43 @@ public class Monster1 : MonoBehaviour
         {
             Debug.LogError("Player object not found in the scene!");
         }
-        // Get the Pathfinder component attached to the monster
-        pathfinder = GetComponent<Pathfinder>();
 
-        Debug.Log("Monster has started. Setting initial state to Patrolling.");
-
-        curState = MonsterState.Patrolling;
-
+        // Initialize patrol points
         if (patrolPoints.Length > 0)
         {
             currentPatrolPoint = 0;
-            Debug.Log("Starting patrol at point: " + patrolPoints[currentPatrolPoint].name);
+            curState = MonsterState.Patrolling;
+            agent.destination = patrolPoints[currentPatrolPoint].position;
         }
         else
         {
             Debug.LogError("No patrol points assigned!");
+            curState = MonsterState.None;
         }
     }
 
     void Update()
     {
-        //Debug.Log($"Current State: {curState}");
+        if (health <= 0 && curState != MonsterState.Dead)
+        {
+            curState = MonsterState.Dead;
+        }
 
         switch (curState)
         {
             case MonsterState.Patrolling:
-                CheckForPlayer();
                 Patrol();
+                CheckForPlayer();
                 break;
 
             case MonsterState.Chasing:
-                CheckLostPlayer();
                 ChasePlayer();
+                CheckAttackPlayer();
+                CheckLostPlayer();
+                break;
+
+            case MonsterState.Climbing:
+                Climb();
                 break;
 
             case MonsterState.Attacking:
@@ -102,188 +120,173 @@ public class Monster1 : MonoBehaviour
                 // Do nothing in this state
                 break;
         }
-
-        if (health <= 0 && curState != MonsterState.Dead)
-        {
-            curState = MonsterState.Dead;
-        }
     }
-
 
     // Patrol State: Move between patrol points
     void Patrol()
     {
-        //Debug.Log("Patrolling...");
+        if (patrolPoints.Length == 0) return;
 
-        // Resume pathfinding after losing the player
-        pathfinder.ResumePathfinding();
+        // Set agent speed to patrol speed
+        agent.speed = patrolSpeed;
 
-        // Check if we need to find a new path (i.e., no current path or reached the goal)
-        if (pathfinder.pathArray == null || currentPathIndex >= pathfinder.pathArray.Count)
+        // If agent has reached the current patrol point, move to the next one
+        if (!agent.pathPending && agent.remainingDistance < 2f)
         {
-            // If the goal (patrol point) is reached, switch to the next patrol point
             currentPatrolPoint = (currentPatrolPoint + 1) % patrolPoints.Length;
-            //Debug.Log("Switching to the next patrol point: " + patrolPoints[currentPatrolPoint].name);
-
-            // Calculate path to the next patrol point
-            pathfinder.FindPath("astar", patrolPoints[currentPatrolPoint].gameObject);
-
-            // Check if a valid path was found
-            if (pathfinder.pathArray == null || pathfinder.pathArray.Count == 0)
-            {
-                Debug.LogError("No path found for patrolling to point: " + patrolPoints[currentPatrolPoint].name);
-                return;  // Skip this patrol point or handle it as needed
-            }
-            currentPathIndex = 0;  // Reset the path index for the new path
+            agent.destination = patrolPoints[currentPatrolPoint].position;
         }
-
-        // Follow the path to the current patrol point
-        FollowPath(patrolSpeed);
     }
-
-
 
     // Check if the player is within detection range to start chasing
     void CheckForPlayer()
     {
-        //Debug.Log("Checking for player...");
+        if (playerTransform == null) return;
 
-        // Check if the player is within the maze and reachable
-        if (PlayerInMaze() && IsPlayerReachable())
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+
+        if (distanceToPlayer <= chaseDistance && PlayerInMaze())
         {
-            Debug.Log("Player detected! Chasing...");
             curState = MonsterState.Chasing;
-            pathfinder.FindPath("astar", GameObject.FindGameObjectWithTag("Player"));  // Recalculate the path to the player
-            currentPathIndex = 0;  // Reset path index
-        }
-        else
-        {
-            // Player is unreachable or outside the maze, revert to patrol mode
-            //Debug.LogWarning("Player unreachable, reverting to patrol mode.");
-            curState = MonsterState.Patrolling;
-            pathfinder.ResumePathfinding();  // Resume pathfinding for patrol
+            agent.speed = moveSpeed;
         }
     }
 
-
-    bool IsPlayerReachable()
-    {
-        // Get the player's position
-        Vector3 playerPos = player.position;
-
-        // Get the grid index of the player position
-        int playerGridIndex = GridManager.instance.GetGridIndex(playerPos);
-
-        // Ensure the player is within bounds and the grid is not an obstacle
-        if (playerGridIndex == -1)
-        {
-            //Debug.LogError("Player is out of bounds.");
-            return false;
-        }
-
-        Node playerNode = GridManager.instance.nodes[playerGridIndex % GridManager.instance.numOfColumns, playerGridIndex / GridManager.instance.numOfColumns];
-
-        // Check if the player node is an obstacle
-        if (playerNode == null || playerNode.bObstacle)
-        {
-            //Debug.LogError("Player is inside an obstacle or unreachable.");
-            return false;
-        }
-
-        return true;  // Player is reachable
-    }
-
-    // Follow the calculated path
-    void FollowPath(float speed)
-    {
-        // Check if pathfinding is paused and skip following the path if it is
-        if (pathfinder.pathfindingState == Pathfinder.PathfindingState.Paused)
-        {
-            //Debug.Log("Pathfinding is paused, skipping movement.");
-            return;  // Skip movement while pathfinding is paused
-        }
-
-        if (pathfinder.pathArray == null || pathfinder.pathArray.Count == 0)
-        {
-            //Debug.LogError("No path found for patrolling!");
-            return;
-        }
-
-        Node currentNode = (Node)pathfinder.pathArray[currentPathIndex];
-        Vector3 targetPosition = new Vector3(currentNode.position.x, transform.position.y, currentNode.position.z);
-
-        // Move towards the current node in the path
-        transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
-
-        // Check if the monster has reached the current node
-        if (Vector3.Distance(transform.position, targetPosition) < 0.5f)
-        {
-            currentPathIndex++;
-
-            // goal reached)
-            if (currentPathIndex >= pathfinder.pathArray.Count)
-            {
-                //Debug.Log("Reached goal.");
-            }
-        }
-    }
-
-    // Chase State: Move towards the player using pathfinding
+    // Chase State: Move towards the player's horizontal position
     void ChasePlayer()
     {
-        timeSinceLastPathUpdate += Time.deltaTime;
+        if (playerTransform == null) return;
 
-        if (timeSinceLastPathUpdate >= pathRecalculationInterval)
+        Vector3 monsterPosition = transform.position;
+        Vector3 playerPosition = playerTransform.position;
+
+        Vector3 directionToPlayer = playerPosition - monsterPosition;
+
+        float horizontalDistanceToPlayer = new Vector2(directionToPlayer.x, directionToPlayer.z).magnitude;
+        float verticalDistanceToPlayer = Mathf.Abs(directionToPlayer.y);
+
+        // Set the agent's destination to the player's horizontal position (same Y as monster)
+        Vector3 targetPosition = new Vector3(playerPosition.x, monsterPosition.y, playerPosition.z);
+        agent.destination = targetPosition;
+
+        // Check if the player is directly above the monster (within thresholds)
+        float verticalThreshold = 1.0f;     // Adjust as needed
+        float horizontalThreshold = 2.0f;   // Adjust as needed
+
+        if (verticalDistanceToPlayer > verticalThreshold && horizontalDistanceToPlayer < horizontalThreshold)
         {
-            pathfinder.FindPath("astar", GameObject.FindGameObjectWithTag("Player")); // Recalculate path to player
-            timeSinceLastPathUpdate = 0.0f; // Reset the timer
-            currentPathIndex = 0;  // Reset the path index
+            // Switch to Climbing state
+            curState = MonsterState.Climbing;
+            agent.isStopped = true; // Stop the NavMeshAgent
+        }
+    }
+
+    // Climbing State: Move upwards towards the player
+    void Climb()
+    {
+        if (playerTransform == null) return;
+
+        // Disable NavMeshAgent while climbing
+        if (agent.enabled)
+        {
+            agent.enabled = false;
+        }
+        
+        // Disable gravity and make the Rigidbody kinematic
+        rb.useGravity = false;
+        rb.isKinematic = true;
+
+        Vector3 monsterPosition = transform.position;
+        Vector3 playerPosition = playerTransform.position;
+
+        float climbSpeed = 5f; // Adjust as needed
+
+        // Calculate vertical movement
+        float step = climbSpeed * Time.deltaTime;
+        float newY = Mathf.MoveTowards(monsterPosition.y, playerPosition.y, step);
+
+        transform.position = new Vector3(monsterPosition.x, newY, monsterPosition.z);
+
+        // Check if monster has reached the player's Y position
+        if (Mathf.Abs(playerPosition.y - transform.position.y) < 0.5f)
+        {
+            // Re-enable NavMeshAgent
+            agent.enabled = true;
+            agent.isStopped = false;
+            
+            // Re-enable gravity and set Rigidbody to non-kinematic
+            rb.useGravity = true;
+            rb.isKinematic = false;
+            // Switch back to Chasing state
+            curState = MonsterState.Chasing;
+        }
+    }
+
+    // Check if the monster should attack the player
+    void CheckAttackPlayer()
+    {
+        if (playerTransform == null) return;
+
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+
+        if (distanceToPlayer <= attackRadius)
+        {
+            curState = MonsterState.Attacking;
+        }
+    }
+
+    // Attack State: Attack the player
+    void AttackPlayer()
+    {
+        if (playerMovement != null)
+        {
+            // Implement attack logic here (e.g., reduce player health or trigger game over)
+            playerMovement.Die();
+            Debug.Log("Attacking Player");
         }
 
-        FollowPath(moveSpeed);
+        // You can decide whether to destroy the monster or switch to another state after attacking
+        // For example, return to patrolling or continue chasing
+        // curState = MonsterState.Patrolling;
     }
 
     // Check if the player has moved out of the maze or the monster's detection range
     void CheckLostPlayer()
     {
-        //Debug.Log("Checking if player is lost...");
-        if (!PlayerInMaze() || !IsPlayerReachable())
+        if (playerTransform == null) return;
+
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+
+        if (distanceToPlayer > chaseDistance || !PlayerInMaze())
         {
-            Debug.Log("Lost the player. Returning to patrol...");
             curState = MonsterState.Patrolling;
-            // When the player is lost, switch target to the next patrol point
-            currentPatrolPoint = (currentPatrolPoint + 1) % patrolPoints.Length;
-            pathfinder.FindPath("astar", patrolPoints[currentPatrolPoint].gameObject);
-            pathfinder.ResumePathfinding();
+            agent.speed = patrolSpeed;
+            agent.destination = patrolPoints[currentPatrolPoint].position;
         }
     }
-
-    void AttackPlayer()
-    {
-        // DO AN ATTACK ANIMATION
-        playerMovement.Die();
-        //Debug.Log("Attacking Player");
-    }
-
 
     // Death State: Handle the monster's death
     void TriggerDeath()
     {
         Debug.Log("Monster has died.");
-        Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+        if (explosionPrefab != null)
+        {
+            Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+        }
         Destroy(gameObject, 1.5f);  // Destroy after explosion
     }
 
-    // Placeholder: Replace with your actual logic to determine if the player is inside the maze
+    // Check if the player is inside the maze
     bool PlayerInMaze()
     {
-        Vector3 playerPos = player.position;
+        if (playerTransform == null) return false;
+
+        Vector3 playerPos = playerTransform.position;
 
         // Check if the player's X and Z coordinates are within the maze boundaries (ignore Y)
         return (playerPos.x >= mazeMinBounds.x && playerPos.x <= mazeMaxBounds.x &&
                 playerPos.z >= mazeMinBounds.z && playerPos.z <= mazeMaxBounds.z);
     }
-
 
     // Apply damage to the monster
     public void ApplyDamage(float damage)
@@ -302,6 +305,8 @@ public class Monster1 : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRadius);
 
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(transform.position, chaseDistance);
         Gizmos.color = Color.green;
         // Calculate the size of the maze based on the min and max bounds
         Vector3 mazeSize = mazeMaxBounds - mazeMinBounds;
