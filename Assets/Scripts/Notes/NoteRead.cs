@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;  // Import the TextMeshPro namespace
+using TMPro;
+using UnityStandardAssets.Characters.FirstPerson;  // Import the TextMeshPro namespace
 
 public class NoteRead : MonoBehaviour
 {
@@ -17,8 +18,15 @@ public class NoteRead : MonoBehaviour
     public bool isInReach;
     private bool isInteractionActive;
     public AudioSource audioSource;
+    public float interactionDistance = 5f;  // Max distance for interaction
+    public Camera playerCamera;  // Reference to player's camera for raycasting
+    private bool hasPlayedAudio = false;   // To track whether the audio has been played
 
-    // Start is called before the first frame update
+    private FirstPersonController fpsController;  // Reference to FirstPersonController script
+    private Vector2 originalTextPosition;  // Store the original position of the interact text
+
+    public Vector2 noteOpenTextPosition = new Vector2(0, 100);  // Position to move interactText when note is open
+
     void Start()
     {
         objectRenderer = objectToHighlight.GetComponent<Renderer>();
@@ -30,41 +38,87 @@ public class NoteRead : MonoBehaviour
 
         isInReach = false;
         isInteractionActive = false;
+
+        // Get the FirstPersonController component from the player object
+        fpsController = player.GetComponent<FirstPersonController>();
+
+        // Store the original position of the interactText
+        originalTextPosition = interactText.rectTransform.anchoredPosition;
     }
 
-    private void Update() {
-        if (isInReach && Input.GetKeyDown(KeyCode.E)){
-            isInteractionActive = !isInteractionActive;
-            noteUI.SetActive(isInteractionActive);
-            compass.SetActive(!isInteractionActive); // Hide the compass when noteUI is active
-            interactText.gameObject.SetActive(false);
-            // Play the audio clip
-            audioSource.PlayOneShot(pickUpClip);
-        }
-    }
-
-    void OnTriggerEnter(Collider other)
+    private void Update() 
     {
-        if (other.CompareTag("Player"))
+        RaycastHit hit;
+        // Perform raycast from the player's camera forward direction
+        if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out hit, interactionDistance))
         {
-            isInReach = true;
-            interactText.gameObject.SetActive(true);
-            interactText.text = "[E]";
+            // Check if the raycast hits the object we want to interact with
+            if (hit.collider.gameObject == objectToHighlight)
+            {
+                isInReach = true;
+                interactText.gameObject.SetActive(true);
+                interactText.text = "[E]";
 
-            // Highlight note
-            objectRenderer.material.color = highlightColor;
+                // Highlight object
+                objectRenderer.material.color = highlightColor;
+
+                // Check for interaction input
+                if (Input.GetKeyDown(KeyCode.E))
+                {
+                    isInteractionActive = !isInteractionActive;
+                    noteUI.SetActive(isInteractionActive);
+                    compass.SetActive(!isInteractionActive); // Hide compass when noteUI is active
+                    interactText.gameObject.SetActive(false);
+
+                    // Lock/Unlock player movement based on interaction
+                    LockPlayerMovement(isInteractionActive);
+
+                    // Adjust the interact text position
+                    if (isInteractionActive)
+                    {
+                        // Move interact text when the note is open, dirty way to hide text, fixes conflict
+                        interactText.rectTransform.anchoredPosition = noteOpenTextPosition;
+                    }
+                    else
+                    {
+                        // Restore the original text position
+                        interactText.rectTransform.anchoredPosition = originalTextPosition;
+                    }
+
+                    // Play the audio only if it hasn't been played yet
+                    if (!hasPlayedAudio)
+                    {
+                        audioSource.PlayOneShot(pickUpClip);
+                        hasPlayedAudio = true;  // Mark audio as played
+                    }
+                }
+            }
+            else
+            {
+                ResetInteraction();
+            }
+        }
+        else
+        {
+            ResetInteraction();
         }
     }
 
-    void OnTriggerExit(Collider other)
+    void LockPlayerMovement(bool lockMovement)
     {
-        if (other.CompareTag("Player"))
+        // Enable or disable the FPS controller based on interaction state
+        if (fpsController != null)
         {
-            isInReach = false;
-            interactText.gameObject.SetActive(false);
-
-            // Reset color to original
-            objectRenderer.material.color = originalColor;
+            fpsController.enabled = !lockMovement;
         }
+    }
+
+    void ResetInteraction()
+    {
+        isInReach = false;
+        interactText.gameObject.SetActive(false);
+
+        // Reset color to original
+        objectRenderer.material.color = originalColor;
     }
 }
