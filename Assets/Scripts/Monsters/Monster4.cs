@@ -22,8 +22,8 @@ public class Monster4 : MonoBehaviour
     public float followDistance = 50f;
     public float attackRange = 3f;
     public float freezeDuration = 5f;
-    public float jumpDistance = 20f;   // Horizontal jump distance
-    public float jumpHeight = 15f;      // How high the monster jumps
+    private float jumpDistance = 20f;   // Horizontal jump distance
+    private float jumpHeight = 15f;      // How high the monster jumps
 
     private bool isFrozen = false;
     private float freezeTimer = 0f;
@@ -45,7 +45,9 @@ public class Monster4 : MonoBehaviour
 
     // Store original position for out-of-bounds check
     private Vector3 originalPosition;
-
+    // To check if the flashlight is currently shining on the monster
+    private bool isFlashlightShining = false;
+    private RigidbodyConstraints originalConstraints;
     private Animator dummyAnimator;
 
 
@@ -73,7 +75,8 @@ public class Monster4 : MonoBehaviour
         }
 
         // Lock rotation on x and z axes to keep the monster upright
-        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        originalConstraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        rb.constraints = originalConstraints;
 
         // Store original position at the start
         originalPosition = transform.position;
@@ -98,21 +101,41 @@ public class Monster4 : MonoBehaviour
             jumpCooldownTimer -= Time.deltaTime;
         }
 
+        // Handle freezing logic
         if (isFrozen)
         {
-            freezeTimer -= Time.deltaTime;
-            if (freezeTimer <= 0f)
+            // Only decrease freeze timer if flashlight is not shining
+            if (!isFlashlightShining)
             {
-                Unfreeze();
+                freezeTimer -= Time.deltaTime;
+                if (freezeTimer <= 0f)
+                {
+                    Unfreeze();
+                }
+            }
+            else
+            {
+                // Reset freeze timer if flashlight is still shining
+                freezeTimer = freezeDuration;
             }
         }
 
-        // Reset jumping if the monster has landed
-        if (isJumping && rb.velocity.y == 0 && jumpInitiated)
+        // Reset flashlight shining flag each frame
+        isFlashlightShining = false;
+
+        // Check if monster has landed after jumping
+        if (isJumping && rb.velocity.y <= 0 && jumpInitiated && IsGrounded())
         {
-            // Re-enable NavMeshAgent after jump
+            Debug.Log("Monster has landed after jumping.");
+
             isJumping = false;
+            jumpInitiated = false;
+
+            // Re-enable NavMeshAgent after landing
             agent.enabled = true;
+            agent.isStopped = false;
+            Debug.Log("NavMeshAgent re-enabled after jump.");
+
             currentState = MonsterState.Following; // Go back to following after jump
         }
 
@@ -122,6 +145,7 @@ public class Monster4 : MonoBehaviour
             ResetToOriginalPosition();
         }
     }
+
 
     // Main state update logic
     void UpdateState()
@@ -154,7 +178,8 @@ public class Monster4 : MonoBehaviour
 
         if (distanceToPlayer <= followDistance)
         {
-            agent.destination = playerTransform.position;
+            agent.isStopped = false;
+            agent.SetDestination(playerTransform.position);
 
             if (distanceToPlayer <= attackRange && !isFrozen)
             {
@@ -164,6 +189,7 @@ public class Monster4 : MonoBehaviour
         }
         else
         {
+            agent.isStopped = true;
             // If the player is outside of follow distance, attempt to jump if cooldown allows
             if (jumpCooldownTimer <= 0f)
             {
@@ -179,13 +205,23 @@ public class Monster4 : MonoBehaviour
         // Debug.Log("Monster4 is attacking the player!");
         // DO AN ATTACK ANIMATION
         AnimateAttack();
-        playerMovement.Die();
-        return;
-        // Add attack logic here (e.g., reduce player health or trigger game over)
-        if (Vector3.Distance(transform.position, playerTransform.position) > attackRange)
+        if (isFrozen)
         {
-            currentState = MonsterState.Following;
+            // If frozen during attack, switch to freezing state
+            currentState = MonsterState.Freezing;
+            return;
         }
+
+        Debug.Log("Monster4 is attacking the player!");
+        // DO AN ATTACK ANIMATION
+        if (playerMovement != null)
+        {
+            playerMovement.Die();
+        }
+        // After attacking, switch back to following or idle as needed
+        currentState = MonsterState.Following;
+
+        
     }
 
     // Freezing state where the monster is frozen when light shines on it
@@ -194,16 +230,21 @@ public class Monster4 : MonoBehaviour
         if (isFrozen)
         {
             // Monster is frozen and doesn't move
-            agent.isStopped = true;
-            agent.ResetPath(); // Clear the agent's path to fully stop movement
+            if (agent.enabled)
+            {
+                agent.isStopped = true;
+                agent.ResetPath(); // Clear the agent's path to fully stop movement
+                agent.enabled = false; // Disable the NavMeshAgent
+            }
             rb.velocity = Vector3.zero; // Stop any movement caused by the Rigidbody
             rb.angularVelocity = Vector3.zero; // Stop any unwanted rotations
-            
+            rb.isKinematic = true; // Make Rigidbody kinematic to prevent physics movement
+
             //Idle animation method call
             AnimateIdle();
 
             // Key collection
-            if (!keyCollected && Vector3.Distance(transform.position, playerTransform.position) < attackRange)
+            if(!keyCollected && Vector3.Distance(transform.position, playerTransform.position) < attackRange)
             {
                 CollectKey();
             }
@@ -217,38 +258,62 @@ public class Monster4 : MonoBehaviour
         agent.isStopped = true;
     }
 
+
+    bool IsGrounded()
+    {
+        // Check if the monster is grounded using a raycast
+        float distanceToGround = 0.1f; // Adjust as needed
+        return Physics.Raycast(transform.position, Vector3.down, distanceToGround);
+    }
+
     // Jumping state: Monster jumps in a random direction when the player leaves range
     void JumpState()
     {
-        
+        if (isFrozen)
+        {
+            currentState = MonsterState.Freezing;
+            return;
+        }
+
         if (!isJumping)
         {
-            agent.isStopped = true; // Stop the agent
-            agent.enabled = false;  // Disable NavMeshAgent so it doesn't interfere with physics
-           
-            // Animation mehtod call for jump, move if wrong spot
-            // AnimateJump();
+            Debug.Log("Entering JumpState.");
 
-            // Calculate random direction between -45 and 45 degrees relative to the player
+            agent.isStopped = true;
+            agent.enabled = false;
+            Debug.Log("NavMeshAgent disabled.");
+
+            // Ensure Rigidbody is not kinematic
+            rb.isKinematic = false;
+
+            // Play jump animation
+            AnimateJump();
+
+            // Calculate random jump direction
             float randomAngle = Random.Range(-45f, 45f);
             Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
             Vector3 randomDirection = Quaternion.Euler(0, randomAngle, 0) * directionToPlayer;
-            
-            // Apply a horizontal jump (in a random direction) and a vertical jump (upward)
-            rb.AddForce(randomDirection * jumpDistance + Vector3.up * jumpHeight, ForceMode.VelocityChange);
+
+            // Apply jump force
+            Vector3 jumpForce = randomDirection * jumpDistance + Vector3.up * jumpHeight;
+            rb.AddForce(jumpForce, ForceMode.VelocityChange);
+            Debug.Log("Jump force applied: " + jumpForce);
+
             isJumping = true;
             jumpInitiated = true;
-            Debug.Log($"Monster4 jumps in a random direction (angle: {randomAngle}) and upward.");
 
-            // Reset the jump cooldown timer after jumping
+            // Reset jump cooldown
             jumpCooldownTimer = jumpCooldown;
         }
     }
 
+
+
+
     // Function to freeze the monster
     public void Freeze()
     {
-        AnimateIdle();
+        //AnimateIdle();
         if (!isFrozen)
         {
             Debug.Log("Monster4 is frozen by the light!");
@@ -256,6 +321,14 @@ public class Monster4 : MonoBehaviour
             freezeTimer = freezeDuration;
             currentState = MonsterState.Freezing;
         }
+        else
+        {
+            // If already frozen, reset the freeze timer
+            freezeTimer = freezeDuration;
+        }
+
+        // Indicate that the flashlight is currently shining on the monster
+        isFlashlightShining = true;
     }
 
     // Function to unfreeze the monster after freeze duration ends
@@ -263,6 +336,13 @@ public class Monster4 : MonoBehaviour
     {
         Debug.Log("Monster4 is no longer frozen.");
         isFrozen = false;
+        rb.isKinematic = false; // Allow physics movement again
+        rb.constraints = originalConstraints; // Restore original constraints
+
+        if (!agent.enabled)
+        {
+            agent.enabled = true; // Re-enable the NavMeshAgent
+        }
         agent.isStopped = false;
         currentState = MonsterState.Following; // Return to following state after unfreezing
     }
@@ -272,6 +352,7 @@ public class Monster4 : MonoBehaviour
     {
         keyCollected = true;
         keyObject.SetActive(false); // Disable or hide the key object when collected
+        GameManager.Instance.CollectYellowKey();
         Debug.Log("Player collected the key from Monster4's tail.");
     }
 
@@ -281,7 +362,11 @@ public class Monster4 : MonoBehaviour
         Debug.Log("Monster4 went out of bounds, resetting to original position.");
         rb.velocity = Vector3.zero; // Reset any velocity
         transform.position = originalPosition; // Reset position
-        agent.enabled = true; // Re-enable the NavMeshAgent
+        if (!agent.enabled)
+        {
+            agent.enabled = true; // Re-enable the NavMeshAgent
+        }
+        agent.isStopped = false;
         currentState = MonsterState.Following; // Return to following state
     }
 
@@ -329,7 +414,7 @@ public class Monster4 : MonoBehaviour
         // return;
     }
 
-      void AnimateJump(){
+    void AnimateJump(){
         dummyAnimator.SetTrigger("Jump");
         // return;
     }

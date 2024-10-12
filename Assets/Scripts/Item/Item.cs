@@ -1,74 +1,61 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Item : MonoBehaviour
 {
-
     private Vector3 rotation;
     private Vector3 startPosition; // To store the initial position for bobbing
     public AudioSource audioSource;
 
-    protected virtual void Awake() {
+    // Reference to determine if the item should follow the monster
+    public bool isFollowingMonster = false;
+
+    protected virtual void Awake()
+    {
         audioSource = GetComponent<AudioSource>();
-        if (audioSource == null){
+        if (audioSource == null)
+        {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
     }
 
-    // protected virtual void Awake() {
-    //     audioSource = GetComponent<AudioSource>();
-    //     if (audioSource == null){
-    //         audioSource = gameObject.AddComponent<AudioSource>();
-    //     }
-    // }
-
-    // public virtual void PickUpSound(){
-    //     if (audioSource != null && audioSource.clip != null){
-    //         audioSource.Play();
-    //     }
-    // }
-    
-
     void Start()
     {
-        Debug.Log("Tag at Start: " + gameObject.tag); 
-        
+        Debug.Log("Tag at Start: " + gameObject.tag);
         // Store the initial position to use it as a reference for bobbing
         startPosition = transform.position;
     }
 
     void Update()
     {
-        // Rotation logic
+        // If the item is following the monster, disable bobbing
+        if (!isFollowingMonster)
+        {
+            // Bobbing logic (only if not following the monster)
+            float bobbingNewY = Mathf.Sin(Time.time * 2f) * 0.2f + startPosition.y;  // Renamed newY to bobbingNewY
+            transform.position = new Vector3(startPosition.x, bobbingNewY, startPosition.z);
+        }
+
+        // Rotation logic (can still rotate while following)
         rotation = new Vector3(0, 30, 0);
         transform.Rotate(rotation * Time.deltaTime);
 
-        // Bobbing logic
-        // Calculate the new Y position relative to the initial position
-        // Pos 2 = height
-        // Pos 1 = speed
-        float newY = Mathf.Sin(Time.time * 2f) * 0.2f + startPosition.y;
-
-        // Set the object's position with the new calculated Y position
-        transform.position = new Vector3(startPosition.x, newY, startPosition.z);
-        
+        // Debug to ensure the key is not untagged
         if (gameObject.tag == "Untagged")
         {
             Debug.LogWarning($"{gameObject.name} became Untagged unexpectedly");
         }
     }
 
-
-
-  public virtual void OnPickUp()
+    public virtual void OnPickUp()
     {
-        // To be overidden 
+        // To be overridden 
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
+            Debug.Log("Player collided with: " + gameObject.name);
             OnPickUp();
             // Destroy handled in subclasses
         }

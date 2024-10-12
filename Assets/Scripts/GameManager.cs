@@ -29,6 +29,14 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI yellowKeyText;
     public TextMeshProUGUI blueKeyText;
     public TextMeshProUGUI UFOKeyText;
+    public GameObject deathCanvas; // Reference to the death canvas
+
+    // Reference to the door controller
+    public DoorController doorController;
+
+    // Reference to the exit zone GameObject
+    public GameObject exitZone;
+
 
     private bool gameEnded = false;
     private void Awake()
@@ -42,12 +50,7 @@ public class GameManager : MonoBehaviour
 
     // Objective List
 
-    public 
-
-
-
-
-    void Start()
+    public void Start()
     {
         //mouseController = GetComponent<MouseController>();
         pauseMenuCanvas.SetActive(false);  // Ensure the pause menu starts inactive
@@ -68,8 +71,14 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         // Check if the ESC key is pressed
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (deathCanvas != null && deathCanvas.activeSelf)
         {
+            // If the death canvas is active, do nothing on pressing Escape
+            return;
+        } else if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            // Check if the ESC key is pressed
+
             if (isPaused)
             {
                 ResumeGame();
@@ -85,7 +94,7 @@ public class GameManager : MonoBehaviour
     void UpdateObjectiveTexts()
     {
         redKeyText.text = "Red Key: " + (redKeyCollected ? "Collected" : "Ongoing");
-        yellowKeyText.text = "Yellow Key: " + (yellowKeyCollected ? "Collected" : "Ongoing");
+        yellowKeyText.text = "Gold Key: " + (yellowKeyCollected ? "Collected" : "Ongoing");
         blueKeyText.text = "Blue Key: " + (blueKeyCollected ? "Collected" : "Ongoing");
         UFOKeyText.text = "UFO Key: " + (UFOKeyCollected ? "Collected" : "Ongoing");
     }
@@ -94,25 +103,60 @@ public class GameManager : MonoBehaviour
     {
         redKeyCollected = true;
         UpdateObjectiveTexts();
+        CheckAllKeysCollected();
     }
 
     public void CollectYellowKey()
     {
         yellowKeyCollected = true;
         UpdateObjectiveTexts();
+        CheckAllKeysCollected();
     }
 
     public void CollectBlueKey()
     {
         blueKeyCollected = true;
         UpdateObjectiveTexts();
+        CheckAllKeysCollected();
     }
 
     public void CollectUFOKey()
     {
         UFOKeyCollected = true;
         UpdateObjectiveTexts();
+        CheckAllKeysCollected();
     }
+
+
+    private void CheckAllKeysCollected()
+    {
+        if (redKeyCollected && yellowKeyCollected &&
+            blueKeyCollected && UFOKeyCollected)
+        {
+            Debug.Log("All keys collected! Opening the door and activating exit zone.");
+
+            // Open the door
+            if (doorController != null)
+            {
+                doorController.OpenDoor();
+            }
+            else
+            {
+                Debug.LogError("DoorController reference not set in GameManager.");
+            }
+
+            // Activate the exit zone
+            if (exitZone != null)
+            {
+                exitZone.SetActive(true);
+            }
+            else
+            {
+                Debug.LogError("ExitZone reference not set in GameManager.");
+            }
+        }
+    }
+
     public void PauseGame()
     {
         // If the help content is active, disable it first
@@ -158,12 +202,6 @@ public class GameManager : MonoBehaviour
     }
 
 
-    // Function to return to the StartPage
-    public void ReturnToMenu()
-    {
-        Time.timeScale = 1f;  // Ensure the game is running before loading the next scene
-        SceneManager.LoadScene("StartPage");
-    }
 
     // Function to quit the game
     public void QuitGame()
@@ -187,6 +225,22 @@ public class GameManager : MonoBehaviour
             StartCoroutine(ReturnToMainMenu());
             ResetLevel();
         }
+    }
+    // Function to return to the StartPage
+    public void ReturnToMenu()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        Time.timeScale = 1f;  // Ensure the game is running before loading the next scene
+        SceneManager.LoadScene("StartPage");
+    }
+
+    public void GoToCreditpage()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        Time.timeScale = 1f;  // Ensure the game is running before loading the next scene
+        SceneManager.LoadScene("Creditpage");
     }
 
     public void FinaliseGame()
@@ -212,6 +266,17 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(1f);  // Optional delay before returning to main menu
         SceneManager.LoadScene("StartPage");  // Load the main menu scene
     }
+
+    public IEnumerator GameEnd()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        yield return new WaitForSeconds(1f);  // Optional delay before returning to main menu
+
+        // Load the credits scene
+        SceneManager.LoadScene("Creditpage");  // Make sure the name matches the actual scene name
+    }
+
 
     public void ShowHelp()
     {
