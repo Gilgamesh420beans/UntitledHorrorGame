@@ -258,11 +258,14 @@ public class Monster1 : MonoBehaviour
 
         FollowPath(moveSpeed);
 
+        ///////////////////////////////    
+        // ADRIAN LOOK HERE!!!!!!
         // Attack player if in range
         if (Vector3.Distance(transform.position, player.position) < attackRadius)
         {
             AttackPlayer();
         }
+        ///////////////////////////////
 
     }
 
