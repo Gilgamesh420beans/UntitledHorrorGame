@@ -13,6 +13,8 @@ TagManager:
   - CameraTarget
   - Fire
   - YellowKey
+  - BlueKey
+  - RedKey
   layers:
   - Default
   - TransparentFX

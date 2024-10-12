@@ -352,6 +352,7 @@ public class Monster4 : MonoBehaviour
     {
         keyCollected = true;
         keyObject.SetActive(false); // Disable or hide the key object when collected
+        GameManager.Instance.CollectYellowKey();
         Debug.Log("Player collected the key from Monster4's tail.");
     }
 

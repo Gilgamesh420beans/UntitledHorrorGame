@@ -21,7 +21,7 @@ public class MotherMonster : MonoBehaviour
     public Transform spawnPoint; // The spawn point for Monster3
     public float minSpawnInterval = 180f; // Minimum 3 minutes
     public float maxSpawnInterval = 300f; // Maximum 5 minutes
-    public float baseChaseSpeed = 10f;
+    private float baseChaseSpeed = 4f;
     public float baseAttackRange = 3f;
     public float growthDuration = 30f; // Time taken to grow to maximum (can be changed later)
     public float maxSizeMultiplier = 3f; // Max size multiplier when angry
@@ -208,7 +208,7 @@ public class MotherMonster : MonoBehaviour
             // Set attack range to 2.5x the current size of the monster
             currentAttackRange = 2.5f * transform.localScale.magnitude;
 
-            Debug.Log($"Growing: Size = {transform.localScale}, Speed = {currentChaseSpeed}, Attack Range = {currentAttackRange}");
+            //Debug.Log($"Growing: Size = {transform.localScale}, Speed = {currentChaseSpeed}, Attack Range = {currentAttackRange}");
         }
 
         if (growthProgress >= 1f && transform.localScale == originalSize * maxSizeMultiplier)
@@ -247,8 +247,20 @@ public class MotherMonster : MonoBehaviour
 
     public void TriggerAngryMode()
     {
+        StartCoroutine(TriggerAngryModeCoroutine());
+    }
+
+    private IEnumerator TriggerAngryModeCoroutine()
+    {
+        Debug.Log("MotherMonster will be Angry in 5 seconds...");
+
+        // Wait for 5 seconds
+        yield return new WaitForSeconds(5f);
+
+        // After the wait, set isAngry and switch to Angry state
         isAngry = true;
         currentState = MotherMonsterState.Angry;
+
         Debug.Log("MotherMonster is now Angry!");
     }
 

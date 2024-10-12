@@ -160,8 +160,20 @@ public class Monster3 : MonoBehaviour
 
     public void TriggerAngryMode()
     {
+        StartCoroutine(TriggerAngryModeCoroutine());
+    }
+
+    private IEnumerator TriggerAngryModeCoroutine()
+    {
+        Debug.Log("Monster3 will be Angry in 5 seconds...");
+
+        // Wait for 5 seconds
+        yield return new WaitForSeconds(5f);
+
+        // After the wait, set isAngry and switch to Angry state
         isAngry = true;
         currentState = MonsterState.Angry;
+
         Debug.Log("Monster3 is now Angry!");
     }
 
