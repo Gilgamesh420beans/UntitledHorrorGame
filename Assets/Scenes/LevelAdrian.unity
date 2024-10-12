@@ -4136,7 +4136,7 @@ MonoBehaviour:
   yellowKeyText: {fileID: 439037694}
   blueKeyText: {fileID: 556150781}
   UFOKeyText: {fileID: 1068671534}
-  deathCanvas: {fileID: 0}
+  deathCanvas: {fileID: 1078371800}
 --- !u!4 &826514455
 Transform:
   m_ObjectHideFlags: 0
@@ -6769,13 +6769,14 @@ GameObject:
   - component: {fileID: 1393267466}
   - component: {fileID: 1393267465}
   - component: {fileID: 1393267469}
+  - component: {fileID: 1393267470}
   m_Layer: 0
   m_Name: Monster2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!135 &1393267465
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -6856,7 +6857,7 @@ Transform:
   m_GameObject: {fileID: 1393267464}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 40, y: 1, z: 52.8}
+  m_LocalPosition: {x: 40, y: 1, z: 57.44}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6876,15 +6877,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   curState: 0
   patrolPoints:
-  - {fileID: 592820754}
+  - {fileID: 87303131}
   - {fileID: 1014105774}
   - {fileID: 1553700750}
-  - {fileID: 87303131}
-  chaseSpeed: 15
-  patrolSpeed: 10
-  hearingRange: 40
-  fieldOfViewAngle: 30
-  attackRange: 2
+  - {fileID: 592820754}
+  chaseSpeed: 7
+  patrolSpeed: 6
+  hearingRange: 60
+  attackRange: 3
+--- !u!195 &1393267470
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1393267464}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1
+  m_BaseOffset: 0.5
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &1425475197
 GameObject:
   m_ObjectHideFlags: 0
@@ -8714,7 +8736,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 168391685850485864, guid: 72952233a00cf5c478d84197f7923fe1, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2090289508370907527, guid: 72952233a00cf5c478d84197f7923fe1, type: 3}
       propertyPath: m_TagString
@@ -8722,7 +8744,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4443990399106157117, guid: 72952233a00cf5c478d84197f7923fe1, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4443990399106157117, guid: 72952233a00cf5c478d84197f7923fe1, type: 3}
       propertyPath: m_TagString
@@ -8734,7 +8756,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6716953860941514736, guid: 72952233a00cf5c478d84197f7923fe1, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8036861804291416463, guid: 72952233a00cf5c478d84197f7923fe1, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8778,7 +8800,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9038549745992085918, guid: 72952233a00cf5c478d84197f7923fe1, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
