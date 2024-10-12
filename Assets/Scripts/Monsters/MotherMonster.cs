@@ -14,7 +14,7 @@ public class MotherMonster : MonoBehaviour
         Unlimited,
         Attacking
     }
-
+    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
     public MotherMonsterState currentState = MotherMonsterState.Idle;
 
     public GameObject monster3Prefab; // The prefab for Monster3
@@ -41,11 +41,31 @@ public class MotherMonster : MonoBehaviour
     private float originalAttackRange;
 
     private ForestAreaTrigger forestAreaTrigger; // Reference to the ForestAreaTrigger component
+    private Animator crawlerAnimator;
+
 
     void Start()
     {
-        playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+        //IMPORTANT//
+        // Reference the Animator component on the true_clown(May need to be tag if issues arise)
+        crawlerAnimator = transform.Find("crawler").GetComponent<Animator>();
+       
+       playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         agent = GetComponent<NavMeshAgent>();
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+            playerMovement = playerObj.GetComponent<PlayerMovement>();  // Assign PlayerMovement component
+            if (playerMovement == null)
+            {
+                Debug.LogError("PlayerMovement component not found on the player object.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Player object not found in the scene!");
+        }
 
         originalSize = transform.localScale;
         originalSpeed = baseChaseSpeed;
@@ -96,8 +116,8 @@ public class MotherMonster : MonoBehaviour
 
     void IdleState()
     {
-        Debug.Log($"MotherMonster is idle. Time to next spawn: {timeToNextSpawn:F2} seconds");
-
+        //Debug.Log($"MotherMonster is idle. Time to next spawn: {timeToNextSpawn:F2} seconds");
+        AnimateIdle();
         if (timeToNextSpawn <= 0)
         {
             Debug.Log("MotherMonster is spawning Monster3.");
@@ -120,6 +140,7 @@ public class MotherMonster : MonoBehaviour
 
     void AngryState()
     {
+        AnimateChasePlayer();
         if (playerInForestArea)
         {
             agent.isStopped = false;
@@ -130,6 +151,7 @@ public class MotherMonster : MonoBehaviour
             // Use currentAttackRange to trigger an attack
             if (Vector3.Distance(transform.position, playerTransform.position) <= currentAttackRange)
             {
+                
                 currentState = MotherMonsterState.Attacking;
             }
         }
@@ -143,6 +165,7 @@ public class MotherMonster : MonoBehaviour
     void WatchingState()
     {
         GrowOverTime();
+        AnimateIdle();
 
         if (playerInForestArea)
         {
@@ -152,6 +175,7 @@ public class MotherMonster : MonoBehaviour
 
     void UnlimitedState()
     {
+        AnimateChasePlayer();
         agent.isStopped = false;
         agent.speed = currentChaseSpeed;
         agent.destination = playerTransform.position;
@@ -166,6 +190,9 @@ public class MotherMonster : MonoBehaviour
     void AttackState()
     {
         Debug.Log("MotherMonster is attacking the player!");
+        // DO AN ATTACK ANIMATION
+        AnimateAttack();
+        playerMovement.Die();
         // Add attack logic here, such as reducing player health or triggering game over.
     }
 
@@ -257,4 +284,58 @@ public class MotherMonster : MonoBehaviour
             forestAreaTrigger.OnPlayerExitedForestArea -= HandlePlayerExitedForestArea;
         }
     }
+
+    //////Animation//////
+
+     // Function to trigger animations based on boolean parameters
+    void SetCrawlerAnimation(string parameter, bool state)
+    {
+        if (crawlerAnimator != null)
+        {
+            crawlerAnimator.SetBool(parameter, state);
+        }
+    }
+
+
+    void FacePlayer()
+    {
+    // Calculate the direction to the player
+    Vector3 directionToPlayer = playerTransform.position - transform.position;
+    // directionToPlayer.y = 0; // Ignore vertical rotation (optional, depending on your game)
+
+    if (directionToPlayer.magnitude > 0.1f) // Check if the player is far enough to face them
+    {
+        // Calculate the rotation needed to face the player
+        Quaternion targetRotation = Quaternion.LookRotation(directionToPlayer);
+
+        // Smoothly rotate the monster towards the player
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f); // Adjust the rotation speed with Time.deltaTime * speed factor
+        }
+    }
+
+    void AnimateIdle(){
+    SetCrawlerAnimation("isCrawling", false);  // Set walking to false
+    SetCrawlerAnimation("isFastCrawling", false); // Ensure running is false
+    SetCrawlerAnimation("isIdle", true);    // Ensure idle is true
+    }
+
+    // Slow Crawl
+    void AnimateSlowCrawl(){
+    // Set walking to true when patrolling, disable other animations
+    SetCrawlerAnimation("isCrawling", true);  // Set walking to true
+    SetCrawlerAnimation("isFastCrawling", false); // Ensure running is false
+    SetCrawlerAnimation("isIdle", false);    // Ensure idle is false
+    }
+
+    void AnimateChasePlayer(){
+    // Set walking or running based on the player's distance, speed, or whatever logic you want
+    SetCrawlerAnimation("isCrawling", true);  // Set running to true when chasing
+    SetCrawlerAnimation("isFastCrawling", true); // Ensure walking is false
+    SetCrawlerAnimation("isIdle", false);    // Ensure idle is false
+    }
+
+    void AnimateAttack(){
+        crawlerAnimator.SetTrigger("Attack");
+    }
+    ////END ANIMATION METHODS////
 }

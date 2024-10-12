@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using static MotherMonster;
 
 public class Monster3 : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class Monster3 : MonoBehaviour
         Stalking,
         Watching,
     }
-
+    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
     public MonsterState currentState;
 
     private NavMeshAgent agent;
@@ -22,6 +23,7 @@ public class Monster3 : MonoBehaviour
 
     public float stalkRange = 20f;
     public float attackRange = 3f;
+    private bool isAngry = false;
 
     public float idleDirection;
     public float idleSpeed;
@@ -42,7 +44,20 @@ public class Monster3 : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         currentState = MonsterState.Idle; // Initial state
-
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+            playerMovement = playerObj.GetComponent<PlayerMovement>();  // Assign PlayerMovement component
+            if (playerMovement == null)
+            {
+                Debug.LogError("PlayerMovement component not found on the player object.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Player object not found in the scene!");
+        }
         // Initialize random values for idle behavior
         idleSpeed = Random.Range(2f, 5f);  // Example random speed range
         stalkingDistance = Random.Range(10f, 20f); // Example stalking distance
@@ -143,6 +158,13 @@ public class Monster3 : MonoBehaviour
         }
     }
 
+    public void TriggerAngryMode()
+    {
+        isAngry = true;
+        currentState = MonsterState.Angry;
+        Debug.Log("Monster3 is now Angry!");
+    }
+
 
     void AngryState()
     {
@@ -169,6 +191,8 @@ public class Monster3 : MonoBehaviour
         // Attack logic, jumps toward the player
         if (Vector3.Distance(transform.position, playerTransform.position) < attackRange)
         {
+            // DO AN ATTACK ANIMATION
+            playerMovement.Die();
             // Perform attack and kill player
         }
     }
