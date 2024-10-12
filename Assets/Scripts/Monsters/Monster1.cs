@@ -12,7 +12,7 @@ public class Monster1 : MonoBehaviour
         Dead,
         None
     }
-
+    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
     // Monster Properties
     public MonsterState curState = MonsterState.None;  // Default state
     public Transform player;
@@ -35,8 +35,23 @@ public class Monster1 : MonoBehaviour
     public Vector3 mazeMinBounds;  // Set in the inspector to the bottom-left corner of the maze
     public Vector3 mazeMaxBounds;  // Set in the inspector to the top-right corner of the maze
 
+    private Transform playerTransform;
     void Start()
     {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            playerTransform = playerObj.transform;
+            playerMovement = playerObj.GetComponent<PlayerMovement>();  // Assign PlayerMovement component
+            if (playerMovement == null)
+            {
+                Debug.LogError("PlayerMovement component not found on the player object.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Player object not found in the scene!");
+        }
         // Get the Pathfinder component attached to the monster
         pathfinder = GetComponent<Pathfinder>();
 
@@ -245,6 +260,8 @@ public class Monster1 : MonoBehaviour
 
     void AttackPlayer()
     {
+        // DO AN ATTACK ANIMATION
+        playerMovement.Die();
         //Debug.Log("Attacking Player");
     }
 

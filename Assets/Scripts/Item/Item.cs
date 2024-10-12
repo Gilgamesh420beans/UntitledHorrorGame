@@ -31,6 +31,8 @@ public class Item : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("Tag at Start: " + gameObject.tag); 
+        
         // Store the initial position to use it as a reference for bobbing
         startPosition = transform.position;
     }
@@ -49,6 +51,11 @@ public class Item : MonoBehaviour
 
         // Set the object's position with the new calculated Y position
         transform.position = new Vector3(startPosition.x, newY, startPosition.z);
+        
+        if (gameObject.tag == "Untagged")
+        {
+            Debug.LogWarning($"{gameObject.name} became Untagged unexpectedly");
+        }
     }
 
 

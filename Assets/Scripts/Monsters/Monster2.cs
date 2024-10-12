@@ -11,10 +11,10 @@ public class Monster2 : MonoBehaviour
         Chasing,
         Freezing,
         Teleporting, //makes a noise
-
-
+        Attacking
     }
 
+    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
     public MonsterState curState = MonsterState.Patrolling;
 
     public Transform[] patrolPoints;  // Waypoints for patrolling
@@ -26,7 +26,7 @@ public class Monster2 : MonoBehaviour
     public float hearingRange = 40f;   // Range within which the monster can hear footsteps
     public float fieldOfViewAngle = 30f;  // Angle for the monster to detect the player looking at it
 
-    
+    public float attackRange = 2f;
     private Transform playerTransform;
 
     // Variables for wall-following behavior
@@ -46,15 +46,20 @@ public class Monster2 : MonoBehaviour
 
     void Start()
     {
-        // Assign player transform
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
             playerTransform = playerObj.transform;
+            playerMovement = playerObj.GetComponent<PlayerMovement>();  // Assign PlayerMovement component
+            if (playerMovement == null)
+            {
+                Debug.LogError("PlayerMovement component not found on the player object.");
+            }
         }
         else
         {
-            //Debug.LogError("Player not found in the scene!");
+            Debug.LogError("Player object not found in the scene!");
         }
 
         // Subscribe to the player's footstep event
@@ -119,9 +124,17 @@ public class Monster2 : MonoBehaviour
             case MonsterState.Freezing:
                 // Do nothing
                 break;
+            case MonsterState.Attacking:
+                Attack();
+                break;
         }
     }
 
+    void Attack()
+    {
+        // DO AN ATTACK ANIMATION
+        playerMovement.Die();
+    }
     bool IsMonsterTrapped()
     {
         // Calculate the distance moved in the last interval
@@ -176,6 +189,15 @@ public class Monster2 : MonoBehaviour
 
     void Chase()
     {
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+        if (distanceToPlayer <= attackRange)
+        {
+            // Switch to Attacking state and perform the attack
+            curState = MonsterState.Attacking;
+            Attack();
+            return;  // Exit the method after attacking
+        }
+
         if (lastHeardPosition != Vector3.zero)
         {
             // Debugging: Log chasing information

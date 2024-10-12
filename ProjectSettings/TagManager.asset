@@ -8,6 +8,9 @@ TagManager:
   - Obstacle
   - Monster2
   - ForestArea
+  - UFOKey
+  - ExitZone
+  - CameraTarget
   layers:
   - Default
   - TransparentFX

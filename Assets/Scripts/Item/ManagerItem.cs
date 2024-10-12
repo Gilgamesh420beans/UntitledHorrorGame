@@ -24,6 +24,7 @@ public class ManagerItem : MonoBehaviour
 
     public void AddItem(string itemName)
     {
+        Debug.Log($"Item added: {itemName}");
         if (itemCounts.ContainsKey(itemName))
             itemCounts[itemName]++;
         else
