@@ -26,7 +26,7 @@ public class NoteRead : MonoBehaviour
     private Vector2 originalTextPosition;  // Store the original position of the interact text
 
     public Vector2 noteOpenTextPosition = new Vector2(0, 100);  // Position to move interactText when note is open
-
+    
     void Start()
     {
         objectRenderer = objectToHighlight.GetComponent<Renderer>();

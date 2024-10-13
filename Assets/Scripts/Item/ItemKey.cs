@@ -7,10 +7,10 @@ public class ItemKey : Item
     protected override void Awake()
     {
         Debug.Log("Tag in Awake: " + gameObject.tag);  // Check the tag at Awake
-        if (audioSource != null && pickupClip != null)
-        {
-            audioSource.PlayOneShot(pickupClip);
-        }
+        // if (audioSource != null && pickupClip != null)
+        // {
+        //     audioSource.PlayOneShot(pickupClip);
+        // }
         
         //gameObject.tag = "UFOKey";  // Force the tag in Awake
         //Debug.Log("Forced tag in Awake: " + gameObject.tag);  // Check if the forced tag works

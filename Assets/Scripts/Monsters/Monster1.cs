@@ -39,9 +39,23 @@ public class Monster1 : MonoBehaviour
 
     private Rigidbody rb;                   // Reference to Rigidbody for manual control of gravity
 
+    public AudioClip chaseClip;
+    private AudioSource audioSource;
+
 
     void Start()
     {
+
+        // Create audio source
+        // audioSource = gameObject.GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        audioSource.clip = chaseClip;
+        audioSource.volume = 1.0f; 
+        audioSource.loop = true; 
+
 
         //Clown
         // Reference the Animator component on the true_clown
@@ -128,6 +142,12 @@ public class Monster1 : MonoBehaviour
     // Patrol State: Move between patrol points
     void Patrol()
     {
+        // If chase audio playing, stop it
+        if (audioSource.isPlaying)
+        {
+        audioSource.Stop();
+        }
+
         AnimatePatrol();
         if (patrolPoints.Length == 0) return;
 
@@ -160,6 +180,12 @@ public class Monster1 : MonoBehaviour
     // Chase State: Move towards the player using pathfinding
     void ChasePlayer()
     {
+        // Play the audio when in chase
+            if (!audioSource.isPlaying)
+        {
+            audioSource.Play();
+        }
+    
         AnimateChasePlayer();
         if (playerTransform == null) return;
 
@@ -269,13 +295,26 @@ public class Monster1 : MonoBehaviour
 
     void AttackPlayer()
     {
-        // DO AN ATTACK ANIMATION
-        agent.isStopped = true;
-        AnimateAttack();
-        playerMovement.Die();
+
+         bool attackDone = false;
+            if (attackDone == false)
+        {
+            AnimateAttack();
+            
+            // Call the Die method after a 1-second delay
+            Invoke("PlayerDeath", 1f);
+            
+            // Set attackDone to true to prevent multiple attacks
+            attackDone = true;
+        }
+        
         //Debug.Log("Attacking Player");
     }
 
+        void PlayerDeath(){
+        agent.isStopped = true;
+         playerMovement.Die();
+    }
 
     // Death State: Handle the monster's death
     void TriggerDeath()

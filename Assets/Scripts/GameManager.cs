@@ -37,6 +37,10 @@ public class GameManager : MonoBehaviour
     // Reference to the exit zone GameObject
     public GameObject exitZone;
 
+    //All keys collected
+    public AudioClip allCollectedClip;
+    private AudioSource audioSource;
+
 
     private bool gameEnded = false;
     private void Awake()
@@ -134,7 +138,11 @@ public class GameManager : MonoBehaviour
             blueKeyCollected && UFOKeyCollected)
         {
             Debug.Log("All keys collected! Opening the door and activating exit zone.");
-
+              // Play the all keys collected clip
+            if (audioSource != null)
+            {
+                audioSource.PlayOneShot(allCollectedClip);
+            }
             // Open the door
             if (doorController != null)
             {

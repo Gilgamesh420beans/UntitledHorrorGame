@@ -49,10 +49,12 @@ public class Monster4 : MonoBehaviour
     private bool isFlashlightShining = false;
     private RigidbodyConstraints originalConstraints;
     private Animator dummyAnimator;
+   
 
 
     void Start()
     {
+
         dummyAnimator = transform.Find("dummy").GetComponent<Animator>();
 
         agent = GetComponent<NavMeshAgent>();
@@ -126,6 +128,12 @@ public class Monster4 : MonoBehaviour
         // Check if monster has landed after jumping
         if (isJumping && rb.velocity.y <= 0 && jumpInitiated && IsGrounded())
         {
+            // Reset jump trigger
+            dummyAnimator.ResetTrigger("Jump");
+
+            // Set isLanded to true for transition back to walk
+            dummyAnimator.SetBool("isLanded", true);
+            
             Debug.Log("Monster has landed after jumping.");
 
             isJumping = false;
@@ -189,10 +197,13 @@ public class Monster4 : MonoBehaviour
         }
         else
         {
+            // Play jump animation
+            AnimateJump();
             agent.isStopped = true;
             // If the player is outside of follow distance, attempt to jump if cooldown allows
             if (jumpCooldownTimer <= 0f)
             {
+                
                 currentState = MonsterState.Jumping;
                 Debug.Log("Player is outside of follow distance, Monster4 will jump.");
             }
@@ -202,9 +213,10 @@ public class Monster4 : MonoBehaviour
     // Attacking state where the monster will try to attack the player
     void AttackState()
     {
+        bool attackDone = false;
         // Debug.Log("Monster4 is attacking the player!");
         // DO AN ATTACK ANIMATION
-        AnimateAttack();
+       
         if (isFrozen)
         {
             // If frozen during attack, switch to freezing state
@@ -216,12 +228,27 @@ public class Monster4 : MonoBehaviour
         // DO AN ATTACK ANIMATION
         if (playerMovement != null)
         {
-            playerMovement.Die();
+            if (attackDone == false)
+        {
+            AnimateAttack();
+            
+            // Call the Die method after a 1-second delay
+            Invoke("PlayerDeath", 1f);
+            
+            // Set attackDone to true to prevent multiple attacks
+            attackDone = true;
+        }
+            
+            
         }
         // After attacking, switch back to following or idle as needed
         currentState = MonsterState.Following;
 
         
+    }
+
+    void PlayerDeath(){
+         playerMovement.Die();
     }
 
     // Freezing state where the monster is frozen when light shines on it
@@ -286,9 +313,6 @@ public class Monster4 : MonoBehaviour
             // Ensure Rigidbody is not kinematic
             rb.isKinematic = false;
 
-            // Play jump animation
-            AnimateJump();
-
             // Calculate random jump direction
             float randomAngle = Random.Range(-45f, 45f);
             Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
@@ -313,7 +337,7 @@ public class Monster4 : MonoBehaviour
     // Function to freeze the monster
     public void Freeze()
     {
-        //AnimateIdle();
+        AnimateIdle();
         if (!isFrozen)
         {
             Debug.Log("Monster4 is frozen by the light!");
@@ -411,12 +435,12 @@ public class Monster4 : MonoBehaviour
 
     void AnimateAttack(){
         dummyAnimator.SetTrigger("Attack");
-        // return;
+        return;
     }
 
     void AnimateJump(){
         dummyAnimator.SetTrigger("Jump");
-        // return;
+        return;
     }
     
 
