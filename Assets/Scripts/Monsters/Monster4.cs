@@ -49,10 +49,12 @@ public class Monster4 : MonoBehaviour
     private bool isFlashlightShining = false;
     private RigidbodyConstraints originalConstraints;
     private Animator dummyAnimator;
+   
 
 
     void Start()
     {
+
         dummyAnimator = transform.Find("dummy").GetComponent<Animator>();
 
         agent = GetComponent<NavMeshAgent>();
