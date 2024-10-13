@@ -22,8 +22,8 @@ public class Monster2 : MonoBehaviour
     private int currentPatrolIndex = 0;
 
     private Vector3 lastHeardPosition = Vector3.zero;  // The position where the monster last heard the player
-    public float chaseSpeed = 7f;
-    public float patrolSpeed = 6f;
+    private float chaseSpeed = 7f;
+    private float patrolSpeed = 5f;
     public float hearingRange = 60f;   // Range within which the monster can hear footsteps
 
     public float attackRange = 3f;
@@ -62,7 +62,7 @@ public class Monster2 : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
         }
         audioSource.clip = chaseClip;
-        audioSource.volume = 1.0f; 
+        audioSource.volume = 0.1f; 
         audioSource.loop = true; 
 
 

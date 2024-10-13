@@ -5470,6 +5470,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c96793442a4ad445864851ab9ae836f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  monster4Enable: {fileID: 606384485}
   pauseMenuCanvas: {fileID: 1543482300}
   isPaused: 0
   helpContentCanvas: {fileID: 907425928}
@@ -10148,7 +10149,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1567266594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13793,6 +13794,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: aef89964a5241433dae7e171962a0984, type: 3}
     - target: {fileID: 4766931359400683228, guid: 076c1bf15f0e24b4999addcc940bcabf, type: 3}
+      propertyPath: chaseSpeed
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4766931359400683228, guid: 076c1bf15f0e24b4999addcc940bcabf, type: 3}
+      propertyPath: patrolSpeed
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4766931359400683228, guid: 076c1bf15f0e24b4999addcc940bcabf, type: 3}
       propertyPath: patrolPoints.Array.data[0]
       value: 
       objectReference: {fileID: 87303131}
@@ -13867,7 +13876,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3882634955223383888, guid: a6dbe7d467aaa4f17942b2756714d076, type: 3}
       propertyPath: m_Speed
-      value: 2.5
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3882634955223383888, guid: a6dbe7d467aaa4f17942b2756714d076, type: 3}
       propertyPath: m_BaseOffset
@@ -13935,7 +13944,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6065821497363053927, guid: a6dbe7d467aaa4f17942b2756714d076, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7359836943700992953, guid: a6dbe7d467aaa4f17942b2756714d076, type: 3}
       propertyPath: m_LocalPosition.y
@@ -14401,7 +14410,7 @@ PrefabInstance:
     - target: {fileID: 6002808095839096476, guid: 346fedb8850aa4ce294bd539854bcdcb, type: 3}
       propertyPath: monster3Prefab
       value: 
-      objectReference: {fileID: 2383283744677732056, guid: 49b3137e7086f4e26b93dc18e8056d06, type: 3}
+      objectReference: {fileID: 5868427752918191532, guid: 5735ccb273aa54842be75a39f0058d17, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14429,7 +14438,7 @@ PrefabInstance:
       objectReference: {fileID: 8300000, guid: 87a99887042ec4b589cff319ac165608, type: 3}
     - target: {fileID: 2642343245365646563, guid: 7b35caef10450494b8f0eb83fab2692f, type: 3}
       propertyPath: moveSpeed
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2642343245365646563, guid: 7b35caef10450494b8f0eb83fab2692f, type: 3}
       propertyPath: patrolSpeed
@@ -14515,6 +14524,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3213507230964573248, guid: 7b35caef10450494b8f0eb83fab2692f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7212946903593784935}
+    - targetCorrespondingSourceObject: {fileID: 3213507230964573248, guid: 7b35caef10450494b8f0eb83fab2692f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7212946903593784941}
   m_SourcePrefab: {fileID: 100100000, guid: 7b35caef10450494b8f0eb83fab2692f, type: 3}
 --- !u!1 &7212946903593784934 stripped
 GameObject:
@@ -14543,6 +14555,33 @@ NavMeshAgent:
   m_BaseOffset: 0.5
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!54 &7212946903593784941
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7212946903593784934}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

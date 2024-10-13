@@ -14,10 +14,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Creditpage.unity
     guid: b38251f4077eeae41bfc435e88a73c4d
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Level.unity
     guid: b90b7d50040bd6d48aab17e7536bcc13
-  - enabled: 1
-    path: Assets/Scenes/LevelAdrian.unity
+  - enabled: 0
+    path: Assets/Scenes/LevelAdrianB.unity
     guid: 01d1b11487d65d94d9546b0bbe67a944
+  - enabled: 1
+    path: Assets/Scenes/MG/Latest/LevelAdrian.unity
+    guid: bd10a622cddb9469a8214a030324da31
   m_configObjects: {}

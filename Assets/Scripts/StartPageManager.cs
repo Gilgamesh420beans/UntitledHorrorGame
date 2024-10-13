@@ -9,7 +9,7 @@ public class StartPageManager : MonoBehaviour
     public void LoadLevel()
     {
         // Load the Level scene by name
-        SceneManager.LoadScene("Level");
+        SceneManager.LoadScene("LevelAdrian");
     }
     public void LoadCredits()
     {
