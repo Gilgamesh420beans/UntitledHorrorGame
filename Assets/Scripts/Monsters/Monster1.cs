@@ -269,13 +269,26 @@ public class Monster1 : MonoBehaviour
 
     void AttackPlayer()
     {
-        // DO AN ATTACK ANIMATION
-        agent.isStopped = true;
-        AnimateAttack();
-        playerMovement.Die();
+
+         bool attackDone = false;
+            if (attackDone == false)
+        {
+            AnimateAttack();
+            
+            // Call the Die method after a 1-second delay
+            Invoke("PlayerDeath", 1f);
+            
+            // Set attackDone to true to prevent multiple attacks
+            attackDone = true;
+        }
+        
         //Debug.Log("Attacking Player");
     }
 
+        void PlayerDeath(){
+        agent.isStopped = true;
+         playerMovement.Die();
+    }
 
     // Death State: Handle the monster's death
     void TriggerDeath()

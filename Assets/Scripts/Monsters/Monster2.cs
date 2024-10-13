@@ -49,8 +49,14 @@ public class Monster2 : MonoBehaviour
 
     private NavMeshAgent agent;  // Reference to the NavMeshAgent component
 
+     private Animator clownAnimator;
+
     void Start()
     {
+
+        // Reference the Animator component on the true_clown
+        clownAnimator = transform.Find("true_clown_variant").GetComponent<Animator>();
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -167,8 +173,24 @@ public class Monster2 : MonoBehaviour
 
     void Attack()
     {
+           bool attackDone = false;
+            if (attackDone == false)
+        {
+            AnimateAttack();
+            
+            // Call the Die method after a 1-second delay
+            Invoke("PlayerDeath", 1f);
+            
+            // Set attackDone to true to prevent multiple attacks
+            attackDone = true;
+        }
         // DO AN ATTACK ANIMATION
-        if (playerMovement != null)
+      
+    }
+
+     void PlayerDeath(){
+       
+         if (playerMovement != null)
         {
             playerMovement.Die();
         }
@@ -215,6 +237,7 @@ public class Monster2 : MonoBehaviour
 
     void Patrol()
     {
+        AnimatePatrol();
         if (patrolPoints.Length == 0 || agent == null || !agent.enabled) return;
 
         agent.speed = patrolSpeed;
@@ -229,6 +252,7 @@ public class Monster2 : MonoBehaviour
 
     void Chase()
     {
+        AnimateChasePlayer();
         if (agent != null && agent.enabled)
         {
             agent.isStopped = true;
@@ -241,6 +265,7 @@ public class Monster2 : MonoBehaviour
             // Switch to Attacking state and perform the attack
             curState = MonsterState.Attacking;
             Attack();
+  
             return;  // Exit the method after attacking
         }
 
@@ -440,6 +465,59 @@ public class Monster2 : MonoBehaviour
             }
         }
     }
+
+    //////Animation//////
+
+    // Function to trigger animations based on boolean parameters
+    void SetClownAnimation(string parameter, bool state)
+    {
+        if (clownAnimator != null)
+        {
+            clownAnimator.SetBool(parameter, state);
+        }
+    }
+
+
+    // void FacePlayer()
+    // {
+    // // Calculate the direction to the player
+    // Vector3 directionToPlayer = playerTransform.position - transform.position;
+    // // directionToPlayer.y = 0; // Ignore vertical rotation (optional, depending on your game)
+
+    // if (directionToPlayer.magnitude > 0.1f) // Check if the player is far enough to face them
+    // {
+    //     // Calculate the rotation needed to face the player
+    //     Quaternion targetRotation = Quaternion.LookRotation(directionToPlayer);
+
+    //     // Smoothly rotate the monster towards the player
+    //     transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f); // Adjust the rotation speed with Time.deltaTime * speed factor
+    //     }
+    // }
+
+    void AnimatePatrol(){
+    // Set walking to true when patrolling, disable other animations
+    SetClownAnimation("isWalking", true);  // Set walking to true
+    SetClownAnimation("isRunning", false); // Ensure running is false
+    SetClownAnimation("isIdle", false);    // Ensure idle is false
+    }
+
+    void AnimateChasePlayer(){
+    // Set walking or running based on the player's distance, speed, or whatever logic you want
+    SetClownAnimation("isRunning", true);  // Set running to true when chasing
+    SetClownAnimation("isWalking", false); // Ensure walking is false
+    SetClownAnimation("isIdle", false);    // Ensure idle is false
+    }
+
+    void AnimateAttack(){
+        clownAnimator.SetTrigger("Attack");
+    }
+
+
+
+    ////END ANIMATION METHODS////
+
+
+
 
     void DrawArrow(Vector3 position, Vector3 direction)
     {

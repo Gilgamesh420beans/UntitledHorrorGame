@@ -68,7 +68,9 @@
     <Compile Include="Assets/Scripts/Item/ItemGreenKey.cs" />
     <Compile Include="Assets/Scripts/Monsters/Pathfinder.cs" />
     <Compile Include="Assets/Scripts/Monsters/CameraDraw.cs" />
+    <Compile Include="Assets/PBS Materials Variety Pack/zzz/MaterialRandomizer.cs" />
     <Compile Include="Assets/Scripts/Monsters/Monster4.cs" />
+    <Compile Include="Assets/PBS Materials Variety Pack/zzz/MaterialRandomizerScript.cs" />
     <Compile Include="Assets/Scripts/StartPageManager.cs" />
     <Compile Include="Assets/Scripts/Monsters/Monster3.cs" />
     <Compile Include="Assets/Scripts/Item/ManagerItem.cs" />
@@ -116,6 +118,7 @@
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile SSD.shader" />
     <None Include="Assets/TextMesh Pro/Resources/LineBreaking Leading Characters.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMPro_Properties.cginc" />
+    <None Include="Assets/PBS Materials Variety Pack/readme.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMPro_Surface.cginc" />
     <None Include="Assets/Polyeler/Simple Retro Car/README.txt" />
     <None Include="Assets/TextMesh Pro/Resources/LineBreaking Following Characters.txt" />
@@ -123,6 +126,7 @@
     <None Include="Assets/Flooded_Grounds/Resources/TreeCreator/TreeCreatorBarkOptimized.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets/Flooded_Grounds/Resources/TreeCreator/TreeCreatorLeaves.shader" />
+    <None Include="Assets/Horror Assets/Read me.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF Overlay.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_Bitmap-Mobile.shader" />
     <None Include="Assets/TextMesh Pro/Fonts/LiberationSans - OFL.txt" />
