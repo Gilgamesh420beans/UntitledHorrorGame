@@ -49,10 +49,23 @@ public class Monster2 : MonoBehaviour
 
     private NavMeshAgent agent;  // Reference to the NavMeshAgent component
 
-     private Animator clownAnimator;
+    private Animator clownAnimator;
+
+    public AudioClip chaseClip;
+    private AudioSource audioSource;
 
     void Start()
     {
+        // Create audio source
+          if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        audioSource.clip = chaseClip;
+        audioSource.volume = 1.0f; 
+        audioSource.loop = true; 
+
+
 
         // Reference the Animator component on the true_clown
         clownAnimator = transform.Find("true_clown_variant").GetComponent<Animator>();
@@ -237,6 +250,12 @@ public class Monster2 : MonoBehaviour
 
     void Patrol()
     {
+        // If chase audio playing, stop it
+        if (audioSource.isPlaying)
+        {
+        audioSource.Stop();
+        }
+
         AnimatePatrol();
         if (patrolPoints.Length == 0 || agent == null || !agent.enabled) return;
 
@@ -252,6 +271,12 @@ public class Monster2 : MonoBehaviour
 
     void Chase()
     {
+        // Play the audio when in chase
+        if (!audioSource.isPlaying)
+        {
+            audioSource.Play();
+        }
+
         AnimateChasePlayer();
         if (agent != null && agent.enabled)
         {
