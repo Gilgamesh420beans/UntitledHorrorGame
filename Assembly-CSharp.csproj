@@ -126,7 +126,7 @@
     <None Include="Assets/Flooded_Grounds/Resources/TreeCreator/TreeCreatorBarkOptimized.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets/Flooded_Grounds/Resources/TreeCreator/TreeCreatorLeaves.shader" />
-    <None Include="Assets/Horror Assets/Read me.txt" />
+    <None Include="Assets/Horror Sfx/Horror Assets/Read me.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF Overlay.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_Bitmap-Mobile.shader" />
     <None Include="Assets/TextMesh Pro/Fonts/LiberationSans - OFL.txt" />

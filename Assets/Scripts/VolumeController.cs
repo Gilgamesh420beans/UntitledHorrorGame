@@ -17,6 +17,9 @@ public class VolumeController : MonoBehaviour
 
     void Start()
     {
+        // Set slider to 50% at the start
+        volumeSlider.value = 0.5f;
+        SetVolume(volumeSlider.value);
         // Add listener to detect slider changes
         volumeSlider.onValueChanged.AddListener(SetVolume);
     }

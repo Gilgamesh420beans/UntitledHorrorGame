@@ -73,8 +73,17 @@ public class PlayerMovement : MonoBehaviour
     public delegate void FootstepEventHandler(Vector3 position);
     public static event FootstepEventHandler OnFootstep;
 
+    // Intro Audio
+    public AudioClip introClip;
+
+
     void Start()
     {
+        
+        // Audio Start
+
+     
+
         controller = GetComponent<CharacterController>();
         currentEnergy = maxEnergy;
         mainCamera = Camera.main;
@@ -88,6 +97,9 @@ public class PlayerMovement : MonoBehaviour
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
+        
+        // Play the audio clip once
+        audioSource.PlayOneShot(introClip);
 
         wasGrounded = true; // Initialize as grounded
         Cursor.lockState = CursorLockMode.Locked;
