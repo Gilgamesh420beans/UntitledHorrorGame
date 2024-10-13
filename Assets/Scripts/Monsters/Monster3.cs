@@ -39,8 +39,16 @@ public class Monster3 : MonoBehaviour
     private bool isInitialized = false; // Flag to check if Monster3 is initialized
 
     private ForestAreaTrigger forestAreaTrigger;
+    private Animator crawlerAnimator;
+
+
     void Start()
     {
+        //IMPORTANT//
+        // Reference the Animator component on the true_clown(May need to be tag if issues arise)
+        crawlerAnimator = transform.Find("crawler").GetComponent<Animator>();
+
+
         agent = GetComponent<NavMeshAgent>();
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         currentState = MonsterState.Idle; // Initial state
@@ -119,6 +127,7 @@ public class Monster3 : MonoBehaviour
     // Example state methods
     void SpawningState()
     {
+        AnimateIdle();
         // Starts at 1/4 size, increases size over 15 seconds to normal size, then enters idle state
         transform.localScale = Vector3.Lerp(Vector3.one * 0.25f, Vector3.one, Time.time / 15f);
 
@@ -137,7 +146,7 @@ public class Monster3 : MonoBehaviour
             {
                 // Generate a random point inside the ForestArea
                 Vector3 randomPoint = GetRandomPointInForestArea();
-
+                AnimateIdle();
                 // Set the new destination for the NavMeshAgent to the random point
                 agent.speed = idleSpeed;
                 agent.destination = randomPoint;
@@ -180,6 +189,7 @@ public class Monster3 : MonoBehaviour
 
     void AngryState()
     {
+        AnimateChasePlayer();
         // Angry logic, chases player when inside ForestArea
         if (playerInForestArea)
         {
@@ -200,9 +210,11 @@ public class Monster3 : MonoBehaviour
 
     void AttackState()
     {
+
         // Attack logic, jumps toward the player
         if (Vector3.Distance(transform.position, playerTransform.position) < attackRange)
         {
+            AnimateAttack();
             // DO AN ATTACK ANIMATION
             playerMovement.Die();
             // Perform attack and kill player
@@ -218,12 +230,12 @@ public class Monster3 : MonoBehaviour
             // Buffer range for stalking (± 2 units)
             float stalkingBufferMin = stalkingDistance - 2f;
             float stalkingBufferMax = stalkingDistance + 2f;
-
             // Debugging: Print the current distance between monster and player
             //Debug.Log($"Stalking State: Distance to Player: {distance}");
 
             if (distance > stalkingBufferMax)
             {
+                AnimateSlowCrawl();
                 // Player is further than the stalking buffer, move closer
                 agent.isStopped = false;
                 agent.speed = stalkingSpeed;
@@ -234,6 +246,7 @@ public class Monster3 : MonoBehaviour
             }
             else if (distance < stalkingBufferMin)
             {
+                AnimateSlowCrawl();
                 // Player is too close, move away from player
                 Vector3 directionAwayFromPlayer = transform.position - playerTransform.position;
                 Vector3 moveAwayTarget = transform.position + directionAwayFromPlayer.normalized * 2f; // Move away by 2 units
@@ -248,6 +261,7 @@ public class Monster3 : MonoBehaviour
             else
             {
                 // Stay in place if within the stalking buffer range
+                AnimateIdle();
                 agent.isStopped = true;
 
                 // Debugging: Print that the monster is maintaining distance
@@ -265,6 +279,7 @@ public class Monster3 : MonoBehaviour
 
     void WatchingState()
     {
+        AnimateIdle();
         // Watches the player from the edge of the ForestArea
         if (!playerInForestArea)
         {
@@ -329,6 +344,42 @@ public class Monster3 : MonoBehaviour
     }
 
 
+    void SetCrawlerAnimation(string parameter, bool state)
+    {
+        if (crawlerAnimator != null)
+        {
+            crawlerAnimator.SetBool(parameter, state);
+        }
+    }
+
+    void AnimateIdle()
+    {
+        SetCrawlerAnimation("isCrawling", false);  // Set walking to false
+        SetCrawlerAnimation("isFastCrawling", false); // Ensure running is false
+        SetCrawlerAnimation("isIdle", true);    // Ensure idle is true
+    }
+
+    // Slow Crawl
+    void AnimateSlowCrawl()
+    {
+        // Set walking to true when patrolling, disable other animations
+        SetCrawlerAnimation("isCrawling", true);  // Set walking to true
+        SetCrawlerAnimation("isFastCrawling", false); // Ensure running is false
+        SetCrawlerAnimation("isIdle", false);    // Ensure idle is false
+    }
+
+    void AnimateChasePlayer()
+    {
+        // Set walking or running based on the player's distance, speed, or whatever logic you want
+        SetCrawlerAnimation("isCrawling", true);  // Set running to true when chasing
+        SetCrawlerAnimation("isFastCrawling", true); // Ensure walking is false
+        SetCrawlerAnimation("isIdle", false);    // Ensure idle is false
+    }
+
+    void AnimateAttack()
+    {
+        crawlerAnimator.SetTrigger("Attack");
+    }
 
     private void OnDrawGizmos()
     {

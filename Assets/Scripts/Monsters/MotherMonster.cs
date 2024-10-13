@@ -21,7 +21,7 @@ public class MotherMonster : MonoBehaviour
     public Transform spawnPoint; // The spawn point for Monster3
     public float minSpawnInterval = 180f; // Minimum 3 minutes
     public float maxSpawnInterval = 300f; // Maximum 5 minutes
-    private float baseChaseSpeed = 4f;
+    private float baseChaseSpeed = 2f;
     public float baseAttackRange = 3f;
     public float growthDuration = 30f; // Time taken to grow to maximum (can be changed later)
     public float maxSizeMultiplier = 3f; // Max size multiplier when angry

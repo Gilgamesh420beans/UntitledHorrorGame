@@ -8,6 +8,9 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+
+    public GameObject monster4Enable;
+
     // Singleton instance
     public static GameManager Instance;
 
@@ -134,11 +137,21 @@ public class GameManager : MonoBehaviour
 
     private void CheckAllKeysCollected()
     {
+
+        if (redKeyCollected)
+        {
+            // Enable the specified GameObject
+            if (monster4Enable != null)
+            {
+                monster4Enable.SetActive(true);
+            }
+        }
+
         if (redKeyCollected && yellowKeyCollected &&
             blueKeyCollected && UFOKeyCollected)
         {
             Debug.Log("All keys collected! Opening the door and activating exit zone.");
-              // Play the all keys collected clip
+            // Play the all keys collected clip
             if (audioSource != null)
             {
                 audioSource.PlayOneShot(allCollectedClip);

@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/MG/Latest/LevelAdrian.unity
+- path: Assets/Scenes/StartPage.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0

@@ -21,8 +21,8 @@ public class Monster1 : MonoBehaviour
     
     public Transform[] patrolPoints;  // Waypoints for patrolling
     public GameObject explosionPrefab;
-    public float moveSpeed = 3f;          // Speed while chasing
-    public float patrolSpeed = 5f;        // Speed while patrolling
+    private float moveSpeed = 3f;          // Speed while chasing
+    private float patrolSpeed = 2f;        // Speed while patrolling
     public float health = 100f;           // Health of the monster
     public float attackRadius = 3f;       // Attack radius
     public float chaseDistance = 60.0f;   // Distance to start chasing the player
@@ -53,7 +53,7 @@ public class Monster1 : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
         }
         audioSource.clip = chaseClip;
-        audioSource.volume = 1.0f; 
+        audioSource.volume = 0.1f; 
         audioSource.loop = true; 
 
 
